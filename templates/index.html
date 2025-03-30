@@ -235,175 +235,178 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
-      const socket = io();
-      let username = localStorage.getItem('username');
-      let avatar = localStorage.getItem('avatar');
-      let users = {};
+        const socket = io();
+        let username = localStorage.getItem('username');
+        let avatar = localStorage.getItem('avatar');
+        let users = {};
 
-      if (!username) {
-          document.getElementById('username-form').style.display = 'block';
-      } else {
-          document.getElementById('chat-container').style.display = 'block';
-          updateMessageStyles();
-          socket.emit('user_active', { username: username, avatar: avatar });
-          socket.emit('get_users', {}); // Запрос списка пользователей для всех
-      }
+        if (!username) {
+            document.getElementById('username-form').style.display = 'block';
+        } else {
+            document.getElementById('chat-container').style.display = 'block';
+            updateMessageStyles();
+            socket.emit('user_active', { username: username, avatar: avatar });
+            socket.emit('get_users', {}); // Запрос списка пользователей для всех
+        }
 
-      function setUsername() {
-          username = document.getElementById('username').value.trim();
-          const avatarInput = document.getElementById('avatar');
-          if (username && avatarInput.files[0]) {
-              const formData = new FormData();
-              formData.append('file', avatarInput.files[0]);
-              fetch('/upload', { method: 'POST', body: formData })
-                  .then(response => response.text())
-                  .then(filename => {
-                      avatar = filename;
-                      localStorage.setItem('username', username);
-                      localStorage.setItem('avatar', avatar);
-                      document.getElementById('username-form').style.display = 'none';
-                      document.getElementById('chat-container').style.display = 'block';
-                      updateMessageStyles();
-                      socket.emit('user_active', { username: username, avatar: avatar });
-                      socket.emit('get_users', {});
-                  });
-          }
-      }
+        function setUsername() {
+            username = document.getElementById('username').value.trim();
+            const avatarInput = document.getElementById('avatar');
+            if (username && avatarInput.files[0]) {
+                const formData = new FormData();
+                formData.append('file', avatarInput.files[0]);
+                fetch('/upload', { method: 'POST', body: formData })
+                    .then(response => response.text())
+                    .then(filename => {
+                        avatar = filename;
+                        localStorage.setItem('username', username);
+                        localStorage.setItem('avatar', avatar);
+                        document.getElementById('username-form').style.display = 'none';
+                        document.getElementById('chat-container').style.display = 'block';
+                        updateMessageStyles();
+                        socket.emit('user_active', { username: username, avatar: avatar });
+                        socket.emit('get_users', {});
+                    });
+            }
+        }
 
-      function updateProfile() {
-          const newUsername = document.getElementById('new-username').value.trim();
-          const newAvatarInput = document.getElementById('new-avatar');
-          if (newUsername || newAvatarInput.files[0]) {
-              if (newAvatarInput.files[0]) {
-                  const formData = new FormData();
-                  formData.append('file', newAvatarInput.files[0]);
-                  fetch('/upload', { method: 'POST', body: formData })
-                      .then(response => response.text())
-                      .then(filename => {
-                          username = newUsername || username;
-                          avatar = filename;
-                          localStorage.setItem('username', username);
-                          localStorage.setItem('avatar', avatar);
-                          document.getElementById('profile-modal').style.display = 'none';
-                          updateMessageStyles();
-                          socket.emit('user_active', { username: username, avatar: avatar });
-                          socket.emit('get_users', {});
-                          location.reload();
-                      });
-              } else {
-                  username = newUsername || username;
-                  localStorage.setItem('username', username);
-                  document.getElementById('profile-modal').style.display = 'none';
-                  updateMessageStyles();
-                  socket.emit('user_active', { username: username, avatar: avatar });
-                  socket.emit('get_users', {});
-                  location.reload();
-              }
-          }
-      }
+        function updateProfile() {
+            const newUsername = document.getElementById('new-username').value.trim();
+            const newAvatarInput = document.getElementById('new-avatar');
+            if (newUsername || newAvatarInput.files[0]) {
+                if (newAvatarInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('file', newAvatarInput.files[0]);
+                    fetch('/upload', { method: 'POST', body: formData })
+                        .then(response => response.text())
+                        .then(filename => {
+                            username = newUsername || username;
+                            avatar = filename;
+                            localStorage.setItem('username', username);
+                            localStorage.setItem('avatar', avatar);
+                            document.getElementById('profile-modal').style.display = 'none';
+                            updateMessageStyles();
+                            socket.emit('user_active', { username: username, avatar: avatar });
+                            socket.emit('get_users', {});
+                            location.reload();
+                        });
+                } else {
+                    username = newUsername || username;
+                    localStorage.setItem('username', username);
+                    document.getElementById('profile-modal').style.display = 'none';
+                    updateMessageStyles();
+                    socket.emit('user_active', { username: username, avatar: avatar });
+                    socket.emit('get_users', {});
+                    location.reload();
+                }
+            }
+        }
 
-      socket.on('new_message', function(msg) {
-          const chat = document.getElementById('chat');
-          const div = document.createElement('div');
-          div.className = 'message';
-          div.dataset.id = msg.id;
-          div.dataset.username = msg.username;
-          const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
-          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
-          chat.appendChild(div);
-          updateMessageStyles();
-          chat.scrollTop = chat.scrollHeight;
-      });
+        socket.on('new_message', function(msg) {
+            const chat = document.getElementById('chat');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.dataset.id = msg.id;
+            div.dataset.username = msg.username;
+            const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
+            div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
+            chat.appendChild(div);
+            updateMessageStyles();
+            chat.scrollTop = chat.scrollHeight;
+        });
 
-      socket.on('message_deleted', function(data) {
-          const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
-          if (msgElement) msgElement.remove();
-      });
+        socket.on('message_deleted', function(data) {
+            const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
+            if (msgElement) msgElement.remove();
+        });
 
-      socket.on('users_list', function(users_data) {
-          users = users_data;
-          updateUsersList();
-      });
+        socket.on('users_list', function(users_data) {
+            users = users_data;
+            updateUsersList();
+        });
 
-      socket.on('update_users', function(users_data) {
-          users = users_data;
-          updateUsersList();
-      });
+        socket.on('update_users', function(users_data) {
+            users = users_data;
+            updateUsersList();
+        });
 
-      function updateUsersList() {
+        function updateUsersList() {
           const usersContent = document.getElementById('users-content');
           usersContent.innerHTML = '';
           for (const [username, info] of Object.entries(users)) {
-              const lastSeen = new Date(info.last_seen).toLocaleString('ru-RU');
+              const lastSeenUTC = new Date(info.last_seen); // Время в UTC
+              const localOffset = new Date().getTimezoneOffset() * -1; // Смещение в минутах (для UTC+3 это 180)
+              const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000); // Коррекция в локальное время
+              const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
               const div = document.createElement('div');
               div.className = 'user-item';
-              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${username}'s avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
+              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${username}'s avatar"><span>${username} — Последний раз онлайн: ${lastSeenFormatted}</span>`;
               usersContent.appendChild(div);
           }
       }
 
-      function sendMessage() {
-          const input = document.getElementById('message');
-          const fileInput = document.getElementById('file-input');
-          const text = input.value.trim();
-          if ((text || fileInput.files[0]) && username) {
-              if (fileInput.files[0]) {
-                  const formData = new FormData();
-                  formData.append('file', fileInput.files[0]);
-                  fetch('/upload', { method: 'POST', body: formData })
-                      .then(response => response.text())
-                      .then(filename => {
-                          socket.emit('send_message', { message: text, username: username, image: filename });
-                          input.value = '';
-                          fileInput.value = '';
-                          socket.emit('user_active', { username: username, avatar: avatar });
-                      });
-              } else {
-                  socket.emit('send_message', { message: text, username: username });
-                  input.value = '';
-                  socket.emit('user_active', { username: username, avatar: avatar });
-              }
-          }
-      }
+        function sendMessage() {
+            const input = document.getElementById('message');
+            const fileInput = document.getElementById('file-input');
+            const text = input.value.trim();
+            if ((text || fileInput.files[0]) && username) {
+                if (fileInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    fetch('/upload', { method: 'POST', body: formData })
+                        .then(response => response.text())
+                        .then(filename => {
+                            socket.emit('send_message', { message: text, username: username, image: filename });
+                            input.value = '';
+                            fileInput.value = '';
+                            socket.emit('user_active', { username: username, avatar: avatar });
+                        });
+                } else {
+                    socket.emit('send_message', { message: text, username: username });
+                    input.value = '';
+                    socket.emit('user_active', { username: username, avatar: avatar });
+                }
+            }
+        }
 
-      function deleteMessage(id) {
-          socket.emit('delete_message', { id: id, username: username });
-      }
+        function deleteMessage(id) {
+            socket.emit('delete_message', { id: id, username: username });
+        }
 
-      function updateMessageStyles() {
-          const messages = document.querySelectorAll('.message');
-          messages.forEach(msg => {
-              const msgUsername = msg.dataset.username;
-              msg.classList.toggle('my-message', msgUsername === username);
-              msg.classList.toggle('other-message', msgUsername !== username);
-          });
-      }
+        function updateMessageStyles() {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(msg => {
+                const msgUsername = msg.dataset.username;
+                msg.classList.toggle('my-message', msgUsername === username);
+                msg.classList.toggle('other-message', msgUsername !== username);
+            });
+        }
 
-      document.getElementById('message').addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') sendMessage();
-      });
+        document.getElementById('message').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
 
-      document.getElementById('profile-btn').addEventListener('click', function() {
-          document.getElementById('profile-modal').style.display = 'block';
-          document.getElementById('new-username').value = username;
-      });
+        document.getElementById('profile-btn').addEventListener('click', function() {
+            document.getElementById('profile-modal').style.display = 'block';
+            document.getElementById('new-username').value = username;
+        });
 
-      document.getElementById('emoji-btn').addEventListener('click', function() {
-          const picker = document.getElementById('emoji-picker');
-          picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-      });
+        document.getElementById('emoji-btn').addEventListener('click', function() {
+            const picker = document.getElementById('emoji-picker');
+            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+        });
 
-      function addEmoji(emoji) {
-          document.getElementById('message').value += emoji;
-          document.getElementById('emoji-picker').style.display = 'none';
-      }
+        function addEmoji(emoji) {
+            document.getElementById('message').value += emoji;
+            document.getElementById('emoji-picker').style.display = 'none';
+        }
 
-      setInterval(() => {
-          if (username) {
-              socket.emit('user_active', { username: username, avatar: avatar });
-              socket.emit('get_users', {});
-          }
-      }, 10000);
+        setInterval(() => {
+            if (username) {
+                socket.emit('user_active', { username: username, avatar: avatar });
+                socket.emit('get_users', {});
+            }
+        }, 10000);
     </script>
   </body>
 </html>
