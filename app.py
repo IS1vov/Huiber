@@ -3,12 +3,17 @@ from flask_socketio import SocketIO, emit
 import secrets
 import os
 from datetime import datetime
+import logging
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-socketio = SocketIO(app)
+socketio = SocketIO(app, logger=True, engineio_logger=True)  # Включаем логи SocketIO
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 messages = []
 users = {}
@@ -16,11 +21,13 @@ users = {}
 
 @app.route("/")
 def index():
+    logger.info("Запрос главной страницы")
     return render_template("index.html", messages=messages)
 
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
+    logger.info("Запрос на загрузку файла")
     if "file" not in request.files:
         return "No file part", 400
     file = request.files["file"]
@@ -33,16 +40,16 @@ def upload_file():
 
 @socketio.on("connect")
 def handle_connect():
-    pass
+    logger.info("Клиент подключился")
 
 
 @socketio.on("user_active")
 def handle_user_active(data):
-    username = data["username"]
+    logger.info(f"User active: {data}")
+    username = data.get("username")
     avatar = data.get("avatar")
     if username:
         users[username] = {"avatar": avatar, "last_seen": datetime.now()}
-        # Преобразуем datetime в строку перед отправкой
         users_serializable = {
             u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
             for u, info in users.items()
@@ -52,16 +59,17 @@ def handle_user_active(data):
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    pass
+    logger.info("Клиент отключился")
 
 
 @socketio.on("send_message")
 def handle_message(data):
+    logger.info(f"Новое сообщение: {data}")
     msg = {
         "id": secrets.token_hex(8),
-        "text": data["message"],
-        "username": data["username"],
-        "image": data.get("image", None),
+        "text": data.get("message", ""),
+        "username": data.get("username", ""),
+        "image": data.get("image"),
     }
     messages.append(msg)
     emit("new_message", msg, broadcast=True)
@@ -69,6 +77,7 @@ def handle_message(data):
 
 @socketio.on("delete_message")
 def handle_delete(data):
+    logger.info(f"Запрос на удаление: {data}")
     if data.get("is_admin") and data.get("password") == "nadya":
         msg_id = data["id"]
         global messages
@@ -78,6 +87,7 @@ def handle_delete(data):
 
 @socketio.on("get_users")
 def handle_get_users(data):
+    logger.info(f"Запрос списка пользователей: {data}")
     if data.get("is_admin") and data.get("password") == "nadya":
         users_serializable = {
             u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
@@ -89,5 +99,6 @@ def handle_get_users(data):
 if __name__ == "__main__":
     import os
 
-    port = int(os.getenv("PORT", 5001))  # Для Render
+    port = int(os.getenv("PORT", 5001))
+    logger.info(f"Запуск сервера на порту {port}")
     socketio.run(app, host="0.0.0.0", port=port)
