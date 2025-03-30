@@ -7,30 +7,32 @@
       body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           margin: 0;
-          background-color: #fafafa;
+          background-color: #f3e5f5; /* Светло-розовый фон страницы */
           display: flex;
           flex-direction: column;
           align-items: center;
       }
       h1 {
           font-size: 24px;
-          color: #262626;
+          color: #4a148c; /* Тёмно-фиолетовый */
           margin: 20px 0;
           display: flex;
           align-items: center;
       }
-      #chat-container, #username-form, #profile-modal {
+      #chat-container, #username-form, #profile-modal, #users-list {
           width: 100%;
           max-width: 600px;
-          background: white;
-          border: 1px solid #dbdbdb;
-          border-radius: 10px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          background: rgba(255, 255, 255, 0.9); /* Полупрозрачный белый для читаемости */
+          border: 1px solid #ce93d8; /* Розово-фиолетовая рамка */
+          border-radius: 15px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
       #chat {
           height: 500px;
           overflow-y: auto;
           padding: 20px;
+          background: url('/static/background.png') no-repeat center center; /* Фон чата */
+          background-size: cover;
       }
       .message {
           margin: 10px 0;
@@ -38,18 +40,17 @@
           border-radius: 20px;
           max-width: 70%;
           word-wrap: break-word;
-          position: relative;
           display: flex;
           align-items: center;
       }
       .my-message {
-          background-color: #0095f6;
+          background-color: #ab47bc; /* Фиолетовый для своих сообщений */
           color: white;
           margin-left: auto;
       }
       .other-message {
-          background-color: #e9ecef;
-          color: #262626;
+          background-color: #f06292; /* Розовый для чужих сообщений */
+          color: white;
           margin-right: auto;
       }
       .username {
@@ -70,21 +71,23 @@
       #input-area {
           display: flex;
           padding: 20px;
-          border-top: 1px solid #dbdbdb;
+          border-top: 1px solid #ce93d8;
           align-items: center;
+          background: rgba(255, 255, 255, 0.9);
       }
       #message {
           flex: 1;
           padding: 10px;
-          border: 1px solid #dbdbdb;
+          border: 1px solid #ce93d8;
           border-radius: 20px;
           outline: none;
           font-size: 14px;
+          background: #fff;
       }
       #send-btn, #emoji-btn, #file-btn, #profile-btn {
           background: none;
           border: none;
-          color: #0095f6;
+          color: #7b1fa2; /* Фиолетовый для кнопок */
           font-weight: 600;
           margin-left: 10px;
           cursor: pointer;
@@ -101,13 +104,13 @@
       }
       #username, #avatar, #new-username, #new-avatar {
           padding: 10px;
-          border: 1px solid #dbdbdb;
+          border: 1px solid #ce93d8;
           border-radius: 5px;
           width: 70%;
           margin-bottom: 10px;
       }
       #save-btn, #save-profile-btn {
-          background-color: #0095f6;
+          background-color: #ab47bc;
           color: white;
           border: none;
           padding: 8px 16px;
@@ -119,7 +122,7 @@
           position: absolute;
           bottom: 70px;
           background: white;
-          border: 1px solid #dbdbdb;
+          border: 1px solid #ce93d8;
           padding: 10px;
           border-radius: 10px;
       }
@@ -131,7 +134,7 @@
       .delete-btn {
           background: none;
           border: none;
-          color: #ed4956;
+          color: #d81b60; /* Ярко-розовый для удаления */
           font-weight: 600;
           margin-left: 10px;
           cursor: pointer;
@@ -141,12 +144,6 @@
           display: inline;
       }
       #users-list {
-          display: none;
-          width: 100%;
-          max-width: 600px;
-          background: white;
-          border: 1px solid #dbdbdb;
-          border-radius: 10px;
           padding: 20px;
           margin-top: 20px;
       }
@@ -182,7 +179,7 @@
       <br />
       <button
         id="admin-btn"
-        style="margin-top: 10px; background: none; border: none; color: #0095f6; cursor: pointer;"
+        style="margin-top: 10px; background: none; border: none; color: #7b1fa2; cursor: pointer;"
       >
         Войти как админ
       </button>
@@ -201,7 +198,7 @@
             class="avatar"
           />
           {% endif %}
-          <span class="username">{{ msg.username }}</span> {{ msg.text }} {% if
+          <span class="username">{{ msg.username }}:</span> {{ msg.text }} {% if
           msg.image %}
           <img src="/static/uploads/{{ msg.image }}" class="content-img" />
           {% endif %}
@@ -236,7 +233,10 @@
         <span class="emoji" onclick="addEmoji('😢')">😢</span>
       </div>
     </div>
-    <div id="users-list"></div>
+    <div id="users-list">
+      <h3>Пользователи</h3>
+      <div id="users-content"></div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
@@ -244,6 +244,7 @@
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
       let isAdmin = false;
+      let users = {};
 
       if (!username) {
           document.getElementById('username-form').style.display = 'block';
@@ -310,7 +311,7 @@
           div.dataset.id = msg.id;
           div.dataset.username = msg.username;
           const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
-          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
+          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
           chat.appendChild(div);
           updateMessageStyles();
           chat.scrollTop = chat.scrollHeight;
@@ -322,16 +323,8 @@
       });
 
       socket.on('users_list', function(users_data) {
-          const usersList = document.getElementById('users-list');
-          usersList.style.display = 'block';
-          usersList.innerHTML = '<h3>Пользователи</h3>';
-          for (const [username, info] of Object.entries(users_data)) {
-              const lastSeen = new Date(info.last_seen).toLocaleString();
-              const div = document.createElement('div');
-              div.className = 'user-item';
-              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
-              usersList.appendChild(div);
-          }
+          users = users_data;
+          updateUsersList();
       });
 
       socket.on('update_users', function(users_data) {
@@ -340,7 +333,24 @@
               socket.emit('get_users', { is_admin: true, password: 'nadya' });
           }
           updateMessageStyles();
+          updateUsersList();
       });
+
+      function updateUsersList() {
+          const usersContent = document.getElementById('users-content');
+          if (isAdmin) {
+              usersContent.innerHTML = '';
+              for (const [username, info] of Object.entries(users)) {
+                  const lastSeen = new Date(info.last_seen).toLocaleString();
+                  const div = document.createElement('div');
+                  div.className = 'user-item';
+                  div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
+                  usersContent.appendChild(div);
+              }
+          } else {
+              usersContent.innerHTML = '<p>Войдите как админ, чтобы увидеть список пользователей.</p>';
+          }
+      }
 
       function sendMessage() {
           const input = document.getElementById('message');
@@ -398,6 +408,7 @@
               updateMessageStyles();
               socket.emit('get_users', { is_admin: true, password: 'nadya' });
               alert('Вы вошли как админ!');
+              updateUsersList();
           } else {
               alert('Неверный пароль');
           }
