@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <title>Huiber</title>
     <link rel="icon" type="image/png" href="/static/logo.png" />
-    <!-- Логотип -->
     <style>
       body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -22,7 +21,7 @@
           display: flex;
           align-items: center;
       }
-      #chat-container, #username-form, #profile-modal, #users-list {
+      #chat-container, #username-form, #profile-modal, #users-list, #call-modal {
           width: 100%;
           max-width: 600px;
           background: rgba(255, 255, 255, 0.9);
@@ -86,7 +85,7 @@
           font-size: 14px;
           background: #fff;
       }
-      #send-btn, #emoji-btn, #file-btn, #profile-btn {
+      #send-btn, #emoji-btn, #file-btn, #profile-btn, #call-btn {
           background: none;
           border: none;
           color: #7b1fa2;
@@ -94,7 +93,7 @@
           margin-left: 10px;
           cursor: pointer;
       }
-      #username-form, #profile-modal {
+      #username-form, #profile-modal, #call-modal {
           padding: 20px;
           text-align: center;
           position: fixed;
@@ -111,13 +110,14 @@
           width: 70%;
           margin-bottom: 10px;
       }
-      #save-btn, #save-profile-btn {
+      #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn {
           background-color: #ab47bc;
           color: white;
           border: none;
           padding: 8px 16px;
           border-radius: 5px;
           cursor: pointer;
+          margin: 5px;
       }
       #emoji-picker {
           display: none;
@@ -143,7 +143,7 @@
           display: none;
       }
       .my-message .delete-btn {
-          display: inline; /* Кнопка удаления видна только для своих сообщений */
+          display: inline;
       }
       #users-list {
           padding: 20px;
@@ -159,6 +159,14 @@
           height: 40px;
           border-radius: 50%;
           margin-right: 10px;
+      }
+      #remote-videos {
+          margin-top: 10px;
+      }
+      #remote-videos video {
+          width: 200px;
+          border-radius: 10px;
+          margin: 5px;
       }
     </style>
   </head>
@@ -178,6 +186,11 @@
       <input type="file" id="new-avatar" accept="image/*" />
       <br />
       <button id="save-profile-btn" onclick="updateProfile()">Сохранить</button>
+    </div>
+    <div id="call-modal" style="display: none;">
+      <h3 id="call-text">Входящий звонок от Huiber</h3>
+      <button id="accept-call-btn" onclick="acceptCall()">Принять</button>
+      <button id="reject-call-btn" onclick="rejectCall()">Отклонить</button>
     </div>
     <div id="chat-container" style="display: none;">
       <div id="chat">
@@ -232,181 +245,287 @@
       <h3>Пользователи</h3>
       <div id="users-content"></div>
     </div>
+    <div id="remote-videos"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
-        const socket = io();
-        let username = localStorage.getItem('username');
-        let avatar = localStorage.getItem('avatar');
-        let users = {};
+      const socket = io();
+      let username = localStorage.getItem('username');
+      let avatar = localStorage.getItem('avatar');
+      let users = {};
+      let peerConnections = {};
+      let localStream;
 
-        if (!username) {
-            document.getElementById('username-form').style.display = 'block';
-        } else {
-            document.getElementById('chat-container').style.display = 'block';
-            updateMessageStyles();
-            socket.emit('user_active', { username: username, avatar: avatar });
-            socket.emit('get_users', {}); // Запрос списка пользователей для всех
-        }
+      if (!username) {
+          document.getElementById('username-form').style.display = 'block';
+      } else {
+          document.getElementById('chat-container').style.display = 'block';
+          updateMessageStyles();
+          socket.emit('user_active', { username: username, avatar: avatar });
+          socket.emit('get_users', {});
+      }
 
-        function setUsername() {
-            username = document.getElementById('username').value.trim();
-            const avatarInput = document.getElementById('avatar');
-            if (username && avatarInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', avatarInput.files[0]);
-                fetch('/upload', { method: 'POST', body: formData })
-                    .then(response => response.text())
-                    .then(filename => {
-                        avatar = filename;
-                        localStorage.setItem('username', username);
-                        localStorage.setItem('avatar', avatar);
-                        document.getElementById('username-form').style.display = 'none';
-                        document.getElementById('chat-container').style.display = 'block';
-                        updateMessageStyles();
-                        socket.emit('user_active', { username: username, avatar: avatar });
-                        socket.emit('get_users', {});
-                    });
-            }
-        }
+      function setUsername() {
+          username = document.getElementById('username').value.trim();
+          const avatarInput = document.getElementById('avatar');
+          if (username && avatarInput.files[0]) {
+              const formData = new FormData();
+              formData.append('file', avatarInput.files[0]);
+              fetch('/upload', { method: 'POST', body: formData })
+                  .then(response => response.text())
+                  .then(filename => {
+                      avatar = filename;
+                      localStorage.setItem('username', username);
+                      localStorage.setItem('avatar', avatar);
+                      document.getElementById('username-form').style.display = 'none';
+                      document.getElementById('chat-container').style.display = 'block';
+                      updateMessageStyles();
+                      socket.emit('user_active', { username: username, avatar: avatar });
+                      socket.emit('get_users', {});
+                  });
+          }
+      }
 
-        function updateProfile() {
-            const newUsername = document.getElementById('new-username').value.trim();
-            const newAvatarInput = document.getElementById('new-avatar');
-            if (newUsername || newAvatarInput.files[0]) {
-                if (newAvatarInput.files[0]) {
-                    const formData = new FormData();
-                    formData.append('file', newAvatarInput.files[0]);
-                    fetch('/upload', { method: 'POST', body: formData })
-                        .then(response => response.text())
-                        .then(filename => {
-                            username = newUsername || username;
-                            avatar = filename;
-                            localStorage.setItem('username', username);
-                            localStorage.setItem('avatar', avatar);
-                            document.getElementById('profile-modal').style.display = 'none';
-                            updateMessageStyles();
-                            socket.emit('user_active', { username: username, avatar: avatar });
-                            socket.emit('get_users', {});
-                            location.reload();
-                        });
-                } else {
-                    username = newUsername || username;
-                    localStorage.setItem('username', username);
-                    document.getElementById('profile-modal').style.display = 'none';
-                    updateMessageStyles();
-                    socket.emit('user_active', { username: username, avatar: avatar });
-                    socket.emit('get_users', {});
-                    location.reload();
-                }
-            }
-        }
+      function updateProfile() {
+          const newUsername = document.getElementById('new-username').value.trim();
+          const newAvatarInput = document.getElementById('new-avatar');
+          if (newUsername || newAvatarInput.files[0]) {
+              if (newAvatarInput.files[0]) {
+                  const formData = new FormData();
+                  formData.append('file', newAvatarInput.files[0]);
+                  fetch('/upload', { method: 'POST', body: formData })
+                      .then(response => response.text())
+                      .then(filename => {
+                          username = newUsername || username;
+                          avatar = filename;
+                          localStorage.setItem('username', username);
+                          localStorage.setItem('avatar', avatar);
+                          document.getElementById('profile-modal').style.display = 'none';
+                          updateMessageStyles();
+                          socket.emit('user_active', { username: username, avatar: avatar });
+                          socket.emit('get_users', {});
+                          location.reload();
+                      });
+              } else {
+                  username = newUsername || username;
+                  localStorage.setItem('username', username);
+                  document.getElementById('profile-modal').style.display = 'none';
+                  updateMessageStyles();
+                  socket.emit('user_active', { username: username, avatar: avatar });
+                  socket.emit('get_users', {});
+                  location.reload();
+              }
+          }
+      }
 
-        socket.on('new_message', function(msg) {
-            const chat = document.getElementById('chat');
-            const div = document.createElement('div');
-            div.className = 'message';
-            div.dataset.id = msg.id;
-            div.dataset.username = msg.username;
-            const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
-            div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
-            chat.appendChild(div);
-            updateMessageStyles();
-            chat.scrollTop = chat.scrollHeight;
-        });
+      socket.on('new_message', function(msg) {
+          const chat = document.getElementById('chat');
+          const div = document.createElement('div');
+          div.className = 'message';
+          div.dataset.id = msg.id;
+          div.dataset.username = msg.username;
+          const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
+          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
+          chat.appendChild(div);
+          updateMessageStyles();
+          chat.scrollTop = chat.scrollHeight;
+      });
 
-        socket.on('message_deleted', function(data) {
-            const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
-            if (msgElement) msgElement.remove();
-        });
+      socket.on('message_deleted', function(data) {
+          const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
+          if (msgElement) msgElement.remove();
+      });
 
-        socket.on('users_list', function(users_data) {
-            users = users_data;
-            updateUsersList();
-        });
+      socket.on('users_list', function(users_data) {
+          users = users_data;
+          updateUsersList();
+      });
 
-        socket.on('update_users', function(users_data) {
-            users = users_data;
-            updateUsersList();
-        });
+      socket.on('update_users', function(users_data) {
+          users = users_data;
+          updateUsersList();
+      });
 
-        function updateUsersList() {
+      function updateUsersList() {
           const usersContent = document.getElementById('users-content');
           usersContent.innerHTML = '';
-          for (const [username, info] of Object.entries(users)) {
-              const lastSeenUTC = new Date(info.last_seen); // Время в UTC
-              const localOffset = new Date().getTimezoneOffset() * -1; // Смещение в минутах (для UTC+3 это 180)
-              const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000); // Коррекция в локальное время
+          for (const [user, info] of Object.entries(users)) {
+              const lastSeenUTC = new Date(info.last_seen);
+              const localOffset = new Date().getTimezoneOffset() * -1;
+              const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000);
               const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
               const div = document.createElement('div');
               div.className = 'user-item';
-              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${username}'s avatar"><span>${username} — Последний раз онлайн: ${lastSeenFormatted}</span>`;
+              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span><button id="call-btn" onclick="initiateCall()">Позвонить</button>`;
               usersContent.appendChild(div);
           }
       }
 
-        function sendMessage() {
-            const input = document.getElementById('message');
-            const fileInput = document.getElementById('file-input');
-            const text = input.value.trim();
-            if ((text || fileInput.files[0]) && username) {
-                if (fileInput.files[0]) {
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-                    fetch('/upload', { method: 'POST', body: formData })
-                        .then(response => response.text())
-                        .then(filename => {
-                            socket.emit('send_message', { message: text, username: username, image: filename });
-                            input.value = '';
-                            fileInput.value = '';
-                            socket.emit('user_active', { username: username, avatar: avatar });
-                        });
-                } else {
-                    socket.emit('send_message', { message: text, username: username });
-                    input.value = '';
-                    socket.emit('user_active', { username: username, avatar: avatar });
-                }
-            }
-        }
+      function sendMessage() {
+          const input = document.getElementById('message');
+          const fileInput = document.getElementById('file-input');
+          const text = input.value.trim();
+          if ((text || fileInput.files[0]) && username) {
+              if (fileInput.files[0]) {
+                  const formData = new FormData();
+                  formData.append('file', fileInput.files[0]);
+                  fetch('/upload', { method: 'POST', body: formData })
+                      .then(response => response.text())
+                      .then(filename => {
+                          socket.emit('send_message', { message: text, username: username, image: filename });
+                          input.value = '';
+                          fileInput.value = '';
+                          socket.emit('user_active', { username: username, avatar: avatar });
+                      });
+              } else {
+                  socket.emit('send_message', { message: text, username: username });
+                  input.value = '';
+                  socket.emit('user_active', { username: username, avatar: avatar });
+              }
+          }
+      }
 
-        function deleteMessage(id) {
-            socket.emit('delete_message', { id: id, username: username });
-        }
+      function deleteMessage(id) {
+          socket.emit('delete_message', { id: id, username: username });
+      }
 
-        function updateMessageStyles() {
-            const messages = document.querySelectorAll('.message');
-            messages.forEach(msg => {
-                const msgUsername = msg.dataset.username;
-                msg.classList.toggle('my-message', msgUsername === username);
-                msg.classList.toggle('other-message', msgUsername !== username);
-            });
-        }
+      function updateMessageStyles() {
+          const messages = document.querySelectorAll('.message');
+          messages.forEach(msg => {
+              const msgUsername = msg.dataset.username;
+              msg.classList.toggle('my-message', msgUsername === username);
+              msg.classList.toggle('other-message', msgUsername !== username);
+          });
+      }
 
-        document.getElementById('message').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
+      document.getElementById('message').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') sendMessage();
+      });
 
-        document.getElementById('profile-btn').addEventListener('click', function() {
-            document.getElementById('profile-modal').style.display = 'block';
-            document.getElementById('new-username').value = username;
-        });
+      document.getElementById('profile-btn').addEventListener('click', function() {
+          document.getElementById('profile-modal').style.display = 'block';
+          document.getElementById('new-username').value = username;
+      });
 
-        document.getElementById('emoji-btn').addEventListener('click', function() {
-            const picker = document.getElementById('emoji-picker');
-            picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
-        });
+      document.getElementById('emoji-btn').addEventListener('click', function() {
+          const picker = document.getElementById('emoji-picker');
+          picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+      });
 
-        function addEmoji(emoji) {
-            document.getElementById('message').value += emoji;
-            document.getElementById('emoji-picker').style.display = 'none';
-        }
+      function addEmoji(emoji) {
+          document.getElementById('message').value += emoji;
+          document.getElementById('emoji-picker').style.display = 'none';
+      }
 
-        setInterval(() => {
-            if (username) {
-                socket.emit('user_active', { username: username, avatar: avatar });
-                socket.emit('get_users', {});
-            }
-        }, 10000);
+      // WebRTC логика
+      const configuration = {
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      };
+
+      async function initiateCall() {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          socket.emit('initiate_call', { username: username });
+
+          for (const target in users) {
+              if (target !== username) {
+                  const pc = new RTCPeerConnection(configuration);
+                  peerConnections[target] = pc;
+
+                  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+                  pc.onicecandidate = event => {
+                      if (event.candidate) {
+                          socket.emit('ice_candidate', {
+                              target: target,
+                              candidate: event.candidate,
+                              caller: username
+                          });
+                      }
+                  };
+
+                  pc.ontrack = event => {
+                      const video = document.createElement('video');
+                      video.srcObject = event.streams[0];
+                      video.autoplay = true;
+                      video.id = `video-${target}`;
+                      document.getElementById('remote-videos').appendChild(video);
+                  };
+
+                  const offer = await pc.createOffer();
+                  await pc.setLocalDescription(offer);
+                  socket.emit('offer', { offer: offer, target: target, caller: username });
+              }
+          }
+      }
+
+      let currentCaller;
+
+      socket.on('incoming_call', async function(data) {
+          currentCaller = data.caller;
+          document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentCaller})`;
+          document.getElementById('call-modal').style.display = 'block';
+      });
+
+      async function acceptCall() {
+          document.getElementById('call-modal').style.display = 'none';
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+
+          const pc = new RTCPeerConnection(configuration);
+          peerConnections[currentCaller] = pc;
+
+          localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+          pc.onicecandidate = event => {
+              if (event.candidate) {
+                  socket.emit('ice_candidate', {
+                      target: currentCaller,
+                      candidate: event.candidate,
+                      caller: username
+                  });
+              }
+          };
+
+          pc.ontrack = event => {
+              const video = document.createElement('video');
+              video.srcObject = event.streams[0];
+              video.autoplay = true;
+              video.id = `video-${currentCaller}`;
+              document.getElementById('remote-videos').appendChild(video);
+          };
+
+          socket.on('offer', async function(data) {
+              if (data.caller === currentCaller) {
+                  await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                  const answer = await pc.createAnswer();
+                  await pc.setLocalDescription(answer);
+                  socket.emit('answer', { answer: answer, target: currentCaller, caller: username });
+              }
+          });
+
+          socket.on('answer', async function(data) {
+              if (data.target === username) {
+                  await peerConnections[data.target].setRemoteDescription(new RTCSessionDescription(data.answer));
+              }
+          });
+
+          socket.on('ice_candidate', async function(data) {
+              if (data.caller === currentCaller || data.target === username) {
+                  await peerConnections[data.caller].addIceCandidate(new RTCIceCandidate(data.candidate));
+              }
+          });
+      }
+
+      function rejectCall() {
+          document.getElementById('call-modal').style.display = 'none';
+          currentCaller = null;
+      }
+
+      setInterval(() => {
+          if (username) {
+              socket.emit('user_active', { username: username, avatar: avatar });
+              socket.emit('get_users', {});
+          }
+      }, 10000);
     </script>
   </body>
 </html>

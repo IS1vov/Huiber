@@ -48,7 +48,11 @@ def handle_user_active(data):
     username = data.get("username")
     avatar = data.get("avatar")
     if username:
-        users[username] = {"avatar": avatar, "last_seen": datetime.now()}
+        users[username] = {
+            "avatar": avatar,
+            "last_seen": datetime.now(),
+            "sid": request.sid,
+        }
         users_serializable = {
             u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
             for u, info in users.items()
@@ -59,6 +63,15 @@ def handle_user_active(data):
 @socketio.on("disconnect")
 def handle_disconnect():
     logger.info("Клиент отключился")
+    for username, info in list(users.items()):
+        if info["sid"] == request.sid:
+            del users[username]
+            break
+    users_serializable = {
+        u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
+        for u, info in users.items()
+    }
+    emit("update_users", users_serializable, broadcast=True)
 
 
 @socketio.on("send_message")
@@ -80,7 +93,6 @@ def handle_delete(data):
     msg_id = data.get("id")
     username = data.get("username")
     global messages
-    # Удаляем сообщение, только если оно принадлежит отправителю
     messages = [
         msg for msg in messages if msg["id"] != msg_id or msg["username"] != username
     ]
@@ -95,6 +107,52 @@ def handle_get_users(data):
         for u, info in users.items()
     }
     emit("users_list", users_serializable, room=request.sid)
+
+
+# WebRTC сигнализация
+@socketio.on("initiate_call")
+def handle_initiate_call(data):
+    logger.info(f"Инициирован звонок: {data}")
+    caller = data.get("username")
+    for username, info in users.items():
+        if username != caller:  # Не звоним себе
+            emit("incoming_call", {"caller": caller}, room=info["sid"])
+
+
+@socketio.on("offer")
+def handle_offer(data):
+    logger.info(f"Передача offer: {data}")
+    target = data.get("target")
+    if target in users:
+        emit(
+            "offer",
+            {"offer": data["offer"], "caller": data["caller"]},
+            room=users[target]["sid"],
+        )
+
+
+@socketio.on("answer")
+def handle_answer(data):
+    logger.info(f"Передача answer: {data}")
+    caller = data.get("caller")
+    if caller in users:
+        emit(
+            "answer",
+            {"answer": data["answer"], "target": data["target"]},
+            room=users[caller]["sid"],
+        )
+
+
+@socketio.on("ice_candidate")
+def handle_ice_candidate(data):
+    logger.info(f"Передача ICE candidate: {data}")
+    target = data.get("target")
+    if target in users:
+        emit(
+            "ice_candidate",
+            {"candidate": data["candidate"], "caller": data["caller"]},
+            room=users[target]["sid"],
+        )
 
 
 if __name__ == "__main__":
