@@ -182,7 +182,7 @@
   </head>
   <body>
     <h1>Huiber <button id="profile-btn">Профиль</button></h1>
-    <button id="call-btn" onclick="initiateCall()">Позвонить всем</button>
+    <button id="call-btn" onclick="initiateCall()">Позвонить</button>
     <div id="username-form" style="display: none;">
       <input type="text" id="username" placeholder="Введи своё имя" />
       <br />
@@ -261,6 +261,7 @@
       <h3>Пользователи</h3>
       <div id="users-content"></div>
     </div>
+    <audio id="ringtone" src="/static/ringtone.mp3" loop></audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
@@ -268,11 +269,12 @@
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
       let users = {};
-      let peerConnections = {};
+      let peerConnection;
       let localStream;
       let callTimer;
       let hasAccepted = false;
-      let participants = [];
+      let currentTarget;
+      const ringtone = document.getElementById('ringtone');
 
       if (!username) {
           document.getElementById('username-form').style.display = 'block';
@@ -437,16 +439,49 @@
 
       // WebRTC логика (только аудио)
       const configuration = {
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+          iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' }
+          ]
       };
 
       async function initiateCall() {
-          if (Object.keys(users).length <= 1) {
+          const availableUsers = Object.keys(users).filter(u => u !== username);
+          if (availableUsers.length === 0) {
               alert("В сети нет других пользователей для звонка.");
               return;
           }
+          currentTarget = availableUsers[0]; // Звоним первому доступному
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          socket.emit('initiate_call', { username: username });
+          peerConnection = new RTCPeerConnection(configuration);
+
+          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+          peerConnection.onicecandidate = event => {
+              if (event.candidate) {
+                  socket.emit('ice_candidate', {
+                      target: currentTarget,
+                      candidate: event.candidate,
+                      caller: username
+                  });
+              }
+          };
+
+          peerConnection.ontrack = event => {
+              const audio = new Audio();
+              audio.srcObject = event.streams[0];
+              audio.autoplay = true;
+              audio.id = `audio-${currentTarget}`;
+              document.body.appendChild(audio);
+              document.getElementById('call-participants').textContent = `Участники: ${currentTarget}`;
+              document.getElementById('call-window').style.display = 'block';
+          };
+
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          socket.emit('initiate_call', { username: username, target: currentTarget });
+          socket.emit('offer', { offer: offer, target: currentTarget, caller: username });
 
           callTimer = setTimeout(() => {
               if (!hasAccepted) {
@@ -454,128 +489,92 @@
                   endCall();
               }
           }, 10000);
-
-          for (const target in users) {
-              if (target !== username) {
-                  const pc = new RTCPeerConnection(configuration);
-                  peerConnections[target] = pc;
-
-                  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-                  pc.onicecandidate = event => {
-                      if (event.candidate) {
-                          socket.emit('ice_candidate', {
-                              target: target,
-                              candidate: event.candidate,
-                              caller: username
-                          });
-                      }
-                  };
-
-                  pc.ontrack = event => {
-                      if (hasAccepted) {
-                          const audio = new Audio();
-                          audio.srcObject = event.streams[0];
-                          audio.autoplay = true;
-                          audio.id = `audio-${target}`;
-                          document.body.appendChild(audio); // Добавляем аудио в DOM для воспроизведения
-                          participants.push(target);
-                          updateCallParticipants();
-                      }
-                  };
-
-                  const offer = await pc.createOffer();
-                  await pc.setLocalDescription(offer);
-                  socket.emit('offer', { offer: offer, target: target, caller: username });
-              }
-          }
       }
 
-      let currentCaller;
-
       socket.on('incoming_call', function(data) {
-          currentCaller = data.caller;
-          document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentCaller})`;
+          currentTarget = data.caller;
+          document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentTarget})`;
           document.getElementById('call-modal').style.display = 'block';
+          ringtone.play();
       });
 
       async function acceptCall() {
           hasAccepted = true;
           clearTimeout(callTimer);
           document.getElementById('call-modal').style.display = 'none';
-          document.getElementById('call-window').style.display = 'block';
+          ringtone.pause();
+          ringtone.currentTime = 0;
 
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const pc = peerConnections[currentCaller] = new RTCPeerConnection(configuration);
+          peerConnection = new RTCPeerConnection(configuration);
 
-          localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-          pc.onicecandidate = event => {
+          peerConnection.onicecandidate = event => {
               if (event.candidate) {
                   socket.emit('ice_candidate', {
-                      target: currentCaller,
+                      target: currentTarget,
                       candidate: event.candidate,
                       caller: username
                   });
               }
           };
 
-          pc.ontrack = event => {
+          peerConnection.ontrack = event => {
               const audio = new Audio();
               audio.srcObject = event.streams[0];
               audio.autoplay = true;
-              audio.id = `audio-${currentCaller}`;
+              audio.id = `audio-${currentTarget}`;
               document.body.appendChild(audio);
-              participants.push(currentCaller);
-              updateCallParticipants();
+              document.getElementById('call-participants').textContent = `Участники: ${currentTarget}`;
+              document.getElementById('call-window').style.display = 'block';
           };
 
           socket.on('offer', async function(data) {
-              if (data.caller === currentCaller) {
-                  await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-                  const answer = await pc.createAnswer();
-                  await pc.setLocalDescription(answer);
-                  socket.emit('answer', { answer: answer, target: currentCaller, caller: username });
+              if (data.caller === currentTarget) {
+                  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                  const answer = await peerConnection.createAnswer();
+                  await peerConnection.setLocalDescription(answer);
+                  socket.emit('answer', { answer: answer, target: currentTarget, caller: username });
               }
           });
 
           socket.on('answer', async function(data) {
-              if (data.target === username && peerConnections[data.target]) {
-                  await peerConnections[data.target].setRemoteDescription(new RTCSessionDescription(data.answer));
-                  document.getElementById('call-window').style.display = 'block';
+              if (data.target === username) {
+                  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
               }
           });
 
           socket.on('ice_candidate', async function(data) {
-              if (data.caller === currentCaller && peerConnections[data.caller]) {
-                  await peerConnections[data.caller].addIceCandidate(new RTCIceCandidate(data.candidate));
+              if (data.caller === currentTarget) {
+                  await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
               }
           });
       }
 
       function rejectCall() {
           document.getElementById('call-modal').style.display = 'none';
-          currentCaller = null;
+          ringtone.pause();
+          ringtone.currentTime = 0;
+          currentTarget = null;
       }
 
       function endCall() {
-          for (const target in peerConnections) {
-              peerConnections[target].close();
-              delete peerConnections[target];
-              const audio = document.getElementById(`audio-${target}`);
-              if (audio) audio.remove();
+          if (peerConnection) {
+              peerConnection.close();
+              peerConnection = null;
           }
           if (localStream) {
               localStream.getTracks().forEach(track => track.stop());
           }
+          const audio = document.getElementById(`audio-${currentTarget}`);
+          if (audio) audio.remove();
           document.getElementById('call-window').style.display = 'none';
+          ringtone.pause();
+          ringtone.currentTime = 0;
           hasAccepted = false;
-          participants = [];
           clearTimeout(callTimer);
-      }
-
-      function updateCallParticipants() {
-          document.getElementById('call-participants').textContent = `Участники: ${participants.join(', ')}`;
+          currentTarget = null;
       }
 
       setInterval(() => {
