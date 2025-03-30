@@ -21,7 +21,7 @@
           display: flex;
           align-items: center;
       }
-      #chat-container, #username-form, #profile-modal, #users-list, #call-modal {
+      #chat-container, #username-form, #profile-modal, #users-list, #call-modal, #call-window {
           width: 100%;
           max-width: 600px;
           background: rgba(255, 255, 255, 0.9);
@@ -85,7 +85,7 @@
           font-size: 14px;
           background: #fff;
       }
-      #send-btn, #emoji-btn, #file-btn, #profile-btn, #call-btn {
+      #send-btn, #emoji-btn, #file-btn, #profile-btn {
           background: none;
           border: none;
           color: #7b1fa2;
@@ -93,7 +93,25 @@
           margin-left: 10px;
           cursor: pointer;
       }
-      #username-form, #profile-modal, #call-modal {
+      #call-btn {
+          position: fixed;
+          right: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+          background-color: #8b4513;
+          color: white;
+          padding: 20px 40px;
+          border: none;
+          border-radius: 10px;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
+          z-index: 20;
+      }
+      #call-btn:hover {
+          background-color: #a0522d;
+      }
+      #username-form, #profile-modal, #call-modal, #call-window {
           padding: 20px;
           text-align: center;
           position: fixed;
@@ -110,7 +128,7 @@
           width: 70%;
           margin-bottom: 10px;
       }
-      #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn {
+      #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn, #end-call-btn {
           background-color: #ab47bc;
           color: white;
           border: none;
@@ -160,9 +178,6 @@
           border-radius: 50%;
           margin-right: 10px;
       }
-      #remote-videos {
-          margin-top: 10px;
-      }
       #remote-videos video {
           width: 200px;
           border-radius: 10px;
@@ -172,6 +187,7 @@
   </head>
   <body>
     <h1>Huiber <button id="profile-btn">Профиль</button></h1>
+    <button id="call-btn" onclick="initiateCall()">Позвонить всем</button>
     <div id="username-form" style="display: none;">
       <input type="text" id="username" placeholder="Введи своё имя" />
       <br />
@@ -191,6 +207,11 @@
       <h3 id="call-text">Входящий звонок от Huiber</h3>
       <button id="accept-call-btn" onclick="acceptCall()">Принять</button>
       <button id="reject-call-btn" onclick="rejectCall()">Отклонить</button>
+    </div>
+    <div id="call-window" style="display: none;">
+      <h3>Звонок</h3>
+      <div id="remote-videos"></div>
+      <button id="end-call-btn" onclick="endCall()">Прервать</button>
     </div>
     <div id="chat-container" style="display: none;">
       <div id="chat">
@@ -245,7 +266,6 @@
       <h3>Пользователи</h3>
       <div id="users-content"></div>
     </div>
-    <div id="remote-videos"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
@@ -255,6 +275,8 @@
       let users = {};
       let peerConnections = {};
       let localStream;
+      let callTimer;
+      let hasAccepted = false;
 
       if (!username) {
           document.getElementById('username-form').style.display = 'block';
@@ -356,7 +378,7 @@
               const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
               const div = document.createElement('div');
               div.className = 'user-item';
-              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span><button id="call-btn" onclick="initiateCall()">Позвонить</button>`;
+              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span>`;
               usersContent.appendChild(div);
           }
       }
@@ -423,8 +445,19 @@
       };
 
       async function initiateCall() {
+          if (Object.keys(users).length <= 1) {
+              alert("В сети нет других пользователей для звонка.");
+              return;
+          }
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
           socket.emit('initiate_call', { username: username });
+
+          callTimer = setTimeout(() => {
+              if (!hasAccepted) {
+                  alert("Тебе никто никогда не поднимет");
+                  endCall();
+              }
+          }, 10000);
 
           for (const target in users) {
               if (target !== username) {
@@ -444,11 +477,13 @@
                   };
 
                   pc.ontrack = event => {
-                      const video = document.createElement('video');
-                      video.srcObject = event.streams[0];
-                      video.autoplay = true;
-                      video.id = `video-${target}`;
-                      document.getElementById('remote-videos').appendChild(video);
+                      if (hasAccepted) {
+                          const video = document.createElement('video');
+                          video.srcObject = event.streams[0];
+                          video.autoplay = true;
+                          video.id = `video-${target}`;
+                          document.getElementById('remote-videos').appendChild(video);
+                      }
                   };
 
                   const offer = await pc.createOffer();
@@ -460,18 +495,20 @@
 
       let currentCaller;
 
-      socket.on('incoming_call', async function(data) {
+      socket.on('incoming_call', function(data) {
           currentCaller = data.caller;
           document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentCaller})`;
           document.getElementById('call-modal').style.display = 'block';
       });
 
       async function acceptCall() {
+          hasAccepted = true;
+          clearTimeout(callTimer);
           document.getElementById('call-modal').style.display = 'none';
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          document.getElementById('call-window').style.display = 'block';
 
-          const pc = new RTCPeerConnection(configuration);
-          peerConnections[currentCaller] = pc;
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          const pc = peerConnections[currentCaller] = new RTCPeerConnection(configuration);
 
           localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
@@ -503,13 +540,14 @@
           });
 
           socket.on('answer', async function(data) {
-              if (data.target === username) {
+              if (data.target === username && peerConnections[data.target]) {
                   await peerConnections[data.target].setRemoteDescription(new RTCSessionDescription(data.answer));
+                  document.getElementById('call-window').style.display = 'block';
               }
           });
 
           socket.on('ice_candidate', async function(data) {
-              if (data.caller === currentCaller || data.target === username) {
+              if (data.caller === currentCaller && peerConnections[data.caller]) {
                   await peerConnections[data.caller].addIceCandidate(new RTCIceCandidate(data.candidate));
               }
           });
@@ -518,6 +556,20 @@
       function rejectCall() {
           document.getElementById('call-modal').style.display = 'none';
           currentCaller = null;
+      }
+
+      function endCall() {
+          for (const target in peerConnections) {
+              peerConnections[target].close();
+              delete peerConnections[target];
+          }
+          if (localStream) {
+              localStream.getTracks().forEach(track => track.stop());
+          }
+          document.getElementById('call-window').style.display = 'none';
+          document.getElementById('remote-videos').innerHTML = '';
+          hasAccepted = false;
+          clearTimeout(callTimer);
       }
 
       setInterval(() => {

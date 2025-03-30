@@ -109,13 +109,12 @@ def handle_get_users(data):
     emit("users_list", users_serializable, room=request.sid)
 
 
-# WebRTC сигнализация
 @socketio.on("initiate_call")
 def handle_initiate_call(data):
     logger.info(f"Инициирован звонок: {data}")
     caller = data.get("username")
     for username, info in users.items():
-        if username != caller:  # Не звоним себе
+        if username != caller:
             emit("incoming_call", {"caller": caller}, room=info["sid"])
 
 
