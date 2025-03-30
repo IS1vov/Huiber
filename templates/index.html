@@ -19,7 +19,7 @@
           display: flex;
           align-items: center;
       }
-      #chat-container, #username-form {
+      #chat-container, #username-form, #profile-modal {
           width: 100%;
           max-width: 600px;
           background: white;
@@ -39,6 +39,8 @@
           max-width: 70%;
           word-wrap: break-word;
           position: relative;
+          display: flex;
+          align-items: center;
       }
       .my-message {
           background-color: #0095f6;
@@ -52,12 +54,18 @@
       }
       .username {
           font-weight: 600;
-          margin-right: 5px;
+          margin-left: 5px;
       }
-      .message img {
+      .message img.content-img {
           max-width: 100%;
           border-radius: 10px;
           margin-top: 5px;
+      }
+      .avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          margin-right: 5px;
       }
       #input-area {
           display: flex;
@@ -73,7 +81,7 @@
           outline: none;
           font-size: 14px;
       }
-      #send-btn, #emoji-btn, #file-btn {
+      #send-btn, #emoji-btn, #file-btn, #profile-btn {
           background: none;
           border: none;
           color: #0095f6;
@@ -81,31 +89,30 @@
           margin-left: 10px;
           cursor: pointer;
       }
-      #username-form {
+      #username-form, #profile-modal {
           padding: 20px;
           text-align: center;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: none;
+          z-index: 10;
       }
-      #username, #avatar {
+      #username, #avatar, #new-username, #new-avatar {
           padding: 10px;
           border: 1px solid #dbdbdb;
           border-radius: 5px;
           width: 70%;
           margin-bottom: 10px;
       }
-      #save-btn {
+      #save-btn, #save-profile-btn {
           background-color: #0095f6;
           color: white;
           border: none;
           padding: 8px 16px;
           border-radius: 5px;
           cursor: pointer;
-      }
-      .avatar {
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          margin-right: 10px;
-          vertical-align: middle;
       }
       #emoji-picker {
           display: none;
@@ -133,24 +140,52 @@
       .admin-mode .delete-btn {
           display: inline;
       }
+      #users-list {
+          display: none;
+          width: 100%;
+          max-width: 600px;
+          background: white;
+          border: 1px solid #dbdbdb;
+          border-radius: 10px;
+          padding: 20px;
+          margin-top: 20px;
+      }
+      .user-item {
+          display: flex;
+          align-items: center;
+          margin: 10px 0;
+      }
+      .user-item img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 10px;
+      }
     </style>
   </head>
   <body>
-    <h1>
-      Huiber
-      <button
-        id="admin-btn"
-        style="font-size: 14px; margin-left: 10px; background: none; border: none; color: #0095f6; cursor: pointer;"
-      >
-        Админ
-      </button>
-    </h1>
+    <h1>Huiber <button id="profile-btn">Профиль</button></h1>
     <div id="username-form" style="display: none;">
       <input type="text" id="username" placeholder="Введи своё имя" />
       <br />
       <input type="file" id="avatar" accept="image/*" />
       <br />
       <button id="save-btn" onclick="setUsername()">Сохранить</button>
+    </div>
+    <div id="profile-modal" style="display: none;">
+      <h3>Профиль</h3>
+      <input type="text" id="new-username" placeholder="Новое имя" />
+      <br />
+      <input type="file" id="new-avatar" accept="image/*" />
+      <br />
+      <button id="save-profile-btn" onclick="updateProfile()">Сохранить</button>
+      <br />
+      <button
+        id="admin-btn"
+        style="margin-top: 10px; background: none; border: none; color: #0095f6; cursor: pointer;"
+      >
+        Войти как админ
+      </button>
     </div>
     <div id="chat-container" style="display: none;">
       <div id="chat">
@@ -160,15 +195,15 @@
           data-id="{{ msg.id }}"
           data-username="{{ msg.username }}"
         >
-          {% if msg.username in avatars %}
+          {% if msg.username in users %}
           <img
-            src="/static/uploads/{{ avatars[msg.username] }}"
+            src="/static/uploads/{{ users[msg.username].avatar }}"
             class="avatar"
           />
           {% endif %}
           <span class="username">{{ msg.username }}</span> {{ msg.text }} {% if
           msg.image %}
-          <img src="/static/uploads/{{ msg.image }}" />
+          <img src="/static/uploads/{{ msg.image }}" class="content-img" />
           {% endif %}
           <button class="delete-btn" onclick="deleteMessage('{{ msg.id }}')">
             Удалить
@@ -201,6 +236,7 @@
         <span class="emoji" onclick="addEmoji('😢')">😢</span>
       </div>
     </div>
+    <div id="users-list"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
@@ -214,6 +250,7 @@
       } else {
           document.getElementById('chat-container').style.display = 'block';
           updateMessageStyles();
+          socket.emit('user_active', { username: username, avatar: avatar });
       }
 
       function setUsername() {
@@ -231,7 +268,38 @@
                       document.getElementById('username-form').style.display = 'none';
                       document.getElementById('chat-container').style.display = 'block';
                       updateMessageStyles();
+                      socket.emit('user_active', { username: username, avatar: avatar });
                   });
+          }
+      }
+
+      function updateProfile() {
+          const newUsername = document.getElementById('new-username').value.trim();
+          const newAvatarInput = document.getElementById('new-avatar');
+          if (newUsername || newAvatarInput.files[0]) {
+              if (newAvatarInput.files[0]) {
+                  const formData = new FormData();
+                  formData.append('file', newAvatarInput.files[0]);
+                  fetch('/upload', { method: 'POST', body: formData })
+                      .then(response => response.text())
+                      .then(filename => {
+                          username = newUsername || username;
+                          avatar = filename;
+                          localStorage.setItem('username', username);
+                          localStorage.setItem('avatar', avatar);
+                          document.getElementById('profile-modal').style.display = 'none';
+                          updateMessageStyles();
+                          socket.emit('user_active', { username: username, avatar: avatar });
+                          location.reload();
+                      });
+              } else {
+                  username = newUsername || username;
+                  localStorage.setItem('username', username);
+                  document.getElementById('profile-modal').style.display = 'none';
+                  updateMessageStyles();
+                  socket.emit('user_active', { username: username, avatar: avatar });
+                  location.reload();
+              }
           }
       }
 
@@ -241,7 +309,8 @@
           div.className = 'message';
           div.dataset.id = msg.id;
           div.dataset.username = msg.username;
-          div.innerHTML = `${msg.username in localStorage ? '<img src="/static/uploads/' + localStorage.getItem('avatar') + '" class="avatar">' : ''}<span class="username">${msg.username}</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
+          const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
+          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}</span> ${msg.text}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
           chat.appendChild(div);
           updateMessageStyles();
           chat.scrollTop = chat.scrollHeight;
@@ -250,6 +319,27 @@
       socket.on('message_deleted', function(data) {
           const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
           if (msgElement) msgElement.remove();
+      });
+
+      socket.on('users_list', function(users_data) {
+          const usersList = document.getElementById('users-list');
+          usersList.style.display = 'block';
+          usersList.innerHTML = '<h3>Пользователи</h3>';
+          for (const [username, info] of Object.entries(users_data)) {
+              const lastSeen = new Date(info.last_seen).toLocaleString();
+              const div = document.createElement('div');
+              div.className = 'user-item';
+              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
+              usersList.appendChild(div);
+          }
+      });
+
+      socket.on('update_users', function(users_data) {
+          users = users_data;
+          if (isAdmin) {
+              socket.emit('get_users', { is_admin: true, password: 'nadya' });
+          }
+          updateMessageStyles();
       });
 
       function sendMessage() {
@@ -266,10 +356,12 @@
                           socket.emit('send_message', { message: text, username: username, image: filename });
                           input.value = '';
                           fileInput.value = '';
+                          socket.emit('user_active', { username: username, avatar: avatar });
                       });
               } else {
                   socket.emit('send_message', { message: text, username: username });
                   input.value = '';
+                  socket.emit('user_active', { username: username, avatar: avatar });
               }
           }
       }
@@ -294,11 +386,17 @@
           if (e.key === 'Enter') sendMessage();
       });
 
+      document.getElementById('profile-btn').addEventListener('click', function() {
+          document.getElementById('profile-modal').style.display = 'block';
+          document.getElementById('new-username').value = username;
+      });
+
       document.getElementById('admin-btn').addEventListener('click', function() {
           const password = prompt('Введите пароль для админа:');
           if (password === 'nadya') {
               isAdmin = true;
               updateMessageStyles();
+              socket.emit('get_users', { is_admin: true, password: 'nadya' });
               alert('Вы вошли как админ!');
           } else {
               alert('Неверный пароль');
@@ -314,6 +412,12 @@
           document.getElementById('message').value += emoji;
           document.getElementById('emoji-picker').style.display = 'none';
       }
+
+      setInterval(() => {
+          if (username) {
+              socket.emit('user_active', { username: username, avatar: avatar });
+          }
+      }, 10000);
     </script>
   </body>
 </html>
