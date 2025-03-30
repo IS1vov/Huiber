@@ -113,9 +113,9 @@ def handle_get_users(data):
 def handle_initiate_call(data):
     logger.info(f"Инициирован звонок: {data}")
     caller = data.get("username")
-    for username, info in users.items():
-        if username != caller:
-            emit("incoming_call", {"caller": caller}, room=info["sid"])
+    target = data.get("target")
+    if target in users:
+        emit("incoming_call", {"caller": caller}, room=users[target]["sid"])
 
 
 @socketio.on("offer")
