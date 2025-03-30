@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>Huiber</title>
+    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <!-- Логотип -->
     <style>
       body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -140,8 +142,8 @@
           cursor: pointer;
           display: none;
       }
-      .admin-mode .delete-btn {
-          display: inline;
+      .my-message .delete-btn {
+          display: inline; /* Кнопка удаления видна только для своих сообщений */
       }
       #users-list {
           padding: 20px;
@@ -176,13 +178,6 @@
       <input type="file" id="new-avatar" accept="image/*" />
       <br />
       <button id="save-profile-btn" onclick="updateProfile()">Сохранить</button>
-      <br />
-      <button
-        id="admin-btn"
-        style="margin-top: 10px; background: none; border: none; color: #7b1fa2; cursor: pointer;"
-      >
-        Войти как админ
-      </button>
     </div>
     <div id="chat-container" style="display: none;">
       <div id="chat">
@@ -243,7 +238,6 @@
       const socket = io();
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
-      let isAdmin = false;
       let users = {};
 
       if (!username) {
@@ -252,6 +246,7 @@
           document.getElementById('chat-container').style.display = 'block';
           updateMessageStyles();
           socket.emit('user_active', { username: username, avatar: avatar });
+          socket.emit('get_users', {}); // Запрос списка пользователей для всех
       }
 
       function setUsername() {
@@ -270,6 +265,7 @@
                       document.getElementById('chat-container').style.display = 'block';
                       updateMessageStyles();
                       socket.emit('user_active', { username: username, avatar: avatar });
+                      socket.emit('get_users', {});
                   });
           }
       }
@@ -291,6 +287,7 @@
                           document.getElementById('profile-modal').style.display = 'none';
                           updateMessageStyles();
                           socket.emit('user_active', { username: username, avatar: avatar });
+                          socket.emit('get_users', {});
                           location.reload();
                       });
               } else {
@@ -299,6 +296,7 @@
                   document.getElementById('profile-modal').style.display = 'none';
                   updateMessageStyles();
                   socket.emit('user_active', { username: username, avatar: avatar });
+                  socket.emit('get_users', {});
                   location.reload();
               }
           }
@@ -329,26 +327,18 @@
 
       socket.on('update_users', function(users_data) {
           users = users_data;
-          if (isAdmin) {
-              socket.emit('get_users', { is_admin: true, password: 'nadya' });
-          }
-          updateMessageStyles();
           updateUsersList();
       });
 
       function updateUsersList() {
           const usersContent = document.getElementById('users-content');
-          if (isAdmin) {
-              usersContent.innerHTML = '';
-              for (const [username, info] of Object.entries(users)) {
-                  const lastSeen = new Date(info.last_seen).toLocaleString('ru-RU');
-                  const div = document.createElement('div');
-                  div.className = 'user-item';
-                  div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${username}'s avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
-                  usersContent.appendChild(div);
-              }
-          } else {
-              usersContent.innerHTML = '<p>Войдите как админ, чтобы увидеть список пользователей.</p>';
+          usersContent.innerHTML = '';
+          for (const [username, info] of Object.entries(users)) {
+              const lastSeen = new Date(info.last_seen).toLocaleString('ru-RU');
+              const div = document.createElement('div');
+              div.className = 'user-item';
+              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${username}'s avatar"><span>${username} — Последний раз онлайн: ${lastSeen}</span>`;
+              usersContent.appendChild(div);
           }
       }
 
@@ -377,9 +367,7 @@
       }
 
       function deleteMessage(id) {
-          if (isAdmin) {
-              socket.emit('delete_message', { id: id, is_admin: true, password: 'nadya' });
-          }
+          socket.emit('delete_message', { id: id, username: username });
       }
 
       function updateMessageStyles() {
@@ -388,7 +376,6 @@
               const msgUsername = msg.dataset.username;
               msg.classList.toggle('my-message', msgUsername === username);
               msg.classList.toggle('other-message', msgUsername !== username);
-              if (isAdmin) msg.classList.add('admin-mode');
           });
       }
 
@@ -399,19 +386,6 @@
       document.getElementById('profile-btn').addEventListener('click', function() {
           document.getElementById('profile-modal').style.display = 'block';
           document.getElementById('new-username').value = username;
-      });
-
-      document.getElementById('admin-btn').addEventListener('click', function() {
-          const password = prompt('Введите пароль для админа:');
-          if (password === 'nadya') {
-              isAdmin = true;
-              updateMessageStyles();
-              socket.emit('get_users', { is_admin: true, password: 'nadya' });
-              alert('Вы вошли как админ!');
-              updateUsersList();
-          } else {
-              alert('Неверный пароль');
-          }
       });
 
       document.getElementById('emoji-btn').addEventListener('click', function() {
@@ -427,6 +401,7 @@
       setInterval(() => {
           if (username) {
               socket.emit('user_active', { username: username, avatar: avatar });
+              socket.emit('get_users', {});
           }
       }, 10000);
     </script>

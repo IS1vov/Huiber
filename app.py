@@ -9,9 +9,8 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-socketio = SocketIO(app, logger=True, engineio_logger=True)  # Включаем логи SocketIO
+socketio = SocketIO(app, logger=True, engineio_logger=True)
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -78,22 +77,24 @@ def handle_message(data):
 @socketio.on("delete_message")
 def handle_delete(data):
     logger.info(f"Запрос на удаление: {data}")
-    if data.get("is_admin") and data.get("password") == "nadya":
-        msg_id = data["id"]
-        global messages
-        messages = [msg for msg in messages if msg["id"] != msg_id]
-        emit("message_deleted", {"id": msg_id}, broadcast=True)
+    msg_id = data.get("id")
+    username = data.get("username")
+    global messages
+    # Удаляем сообщение, только если оно принадлежит отправителю
+    messages = [
+        msg for msg in messages if msg["id"] != msg_id or msg["username"] != username
+    ]
+    emit("message_deleted", {"id": msg_id}, broadcast=True)
 
 
 @socketio.on("get_users")
 def handle_get_users(data):
-    logger.info(f"Запрос списка пользователей: {data}")
-    if data.get("is_admin") and data.get("password") == "nadya":
-        users_serializable = {
-            u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
-            for u, info in users.items()
-        }
-        emit("users_list", users_serializable, room=request.sid)
+    logger.info("Запрос списка пользователей")
+    users_serializable = {
+        u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
+        for u, info in users.items()
+    }
+    emit("users_list", users_serializable, room=request.sid)
 
 
 if __name__ == "__main__":
