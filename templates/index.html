@@ -178,11 +178,6 @@
           border-radius: 50%;
           margin-right: 10px;
       }
-      #remote-videos video {
-          width: 200px;
-          border-radius: 10px;
-          margin: 5px;
-      }
     </style>
   </head>
   <body>
@@ -209,8 +204,8 @@
       <button id="reject-call-btn" onclick="rejectCall()">Отклонить</button>
     </div>
     <div id="call-window" style="display: none;">
-      <h3>Звонок</h3>
-      <div id="remote-videos"></div>
+      <h3>Аудиозвонок</h3>
+      <p id="call-participants"></p>
       <button id="end-call-btn" onclick="endCall()">Прервать</button>
     </div>
     <div id="chat-container" style="display: none;">
@@ -277,6 +272,7 @@
       let localStream;
       let callTimer;
       let hasAccepted = false;
+      let participants = [];
 
       if (!username) {
           document.getElementById('username-form').style.display = 'block';
@@ -439,7 +435,7 @@
           document.getElementById('emoji-picker').style.display = 'none';
       }
 
-      // WebRTC логика
+      // WebRTC логика (только аудио)
       const configuration = {
           iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       };
@@ -449,7 +445,7 @@
               alert("В сети нет других пользователей для звонка.");
               return;
           }
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           socket.emit('initiate_call', { username: username });
 
           callTimer = setTimeout(() => {
@@ -478,11 +474,13 @@
 
                   pc.ontrack = event => {
                       if (hasAccepted) {
-                          const video = document.createElement('video');
-                          video.srcObject = event.streams[0];
-                          video.autoplay = true;
-                          video.id = `video-${target}`;
-                          document.getElementById('remote-videos').appendChild(video);
+                          const audio = new Audio();
+                          audio.srcObject = event.streams[0];
+                          audio.autoplay = true;
+                          audio.id = `audio-${target}`;
+                          document.body.appendChild(audio); // Добавляем аудио в DOM для воспроизведения
+                          participants.push(target);
+                          updateCallParticipants();
                       }
                   };
 
@@ -507,7 +505,7 @@
           document.getElementById('call-modal').style.display = 'none';
           document.getElementById('call-window').style.display = 'block';
 
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const pc = peerConnections[currentCaller] = new RTCPeerConnection(configuration);
 
           localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
@@ -523,11 +521,13 @@
           };
 
           pc.ontrack = event => {
-              const video = document.createElement('video');
-              video.srcObject = event.streams[0];
-              video.autoplay = true;
-              video.id = `video-${currentCaller}`;
-              document.getElementById('remote-videos').appendChild(video);
+              const audio = new Audio();
+              audio.srcObject = event.streams[0];
+              audio.autoplay = true;
+              audio.id = `audio-${currentCaller}`;
+              document.body.appendChild(audio);
+              participants.push(currentCaller);
+              updateCallParticipants();
           };
 
           socket.on('offer', async function(data) {
@@ -562,14 +562,20 @@
           for (const target in peerConnections) {
               peerConnections[target].close();
               delete peerConnections[target];
+              const audio = document.getElementById(`audio-${target}`);
+              if (audio) audio.remove();
           }
           if (localStream) {
               localStream.getTracks().forEach(track => track.stop());
           }
           document.getElementById('call-window').style.display = 'none';
-          document.getElementById('remote-videos').innerHTML = '';
           hasAccepted = false;
+          participants = [];
           clearTimeout(callTimer);
+      }
+
+      function updateCallParticipants() {
+          document.getElementById('call-participants').textContent = `Участники: ${participants.join(', ')}`;
       }
 
       setInterval(() => {
