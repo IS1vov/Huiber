@@ -5,24 +5,20 @@ import json
 import eventlet
 from pydub import AudioSegment
 
-# Настройка eventlet для асинхронной работы
 eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, async_mode="eventlet")
 
-# Пути для локального хранения
 MESSAGES_FILE = "messages.json"
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Создаем директорию для загрузок, если ее нет
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 
-# Загрузка сообщений из файла
 def load_messages():
     if os.path.exists(MESSAGES_FILE):
         with open(MESSAGES_FILE, "r", encoding="utf-8") as f:
@@ -30,7 +26,6 @@ def load_messages():
     return []
 
 
-# Сохранение сообщений в файл
 def save_messages(messages):
     with open(MESSAGES_FILE, "w", encoding="utf-8") as f:
         json.dump(messages, f, ensure_ascii=False)
@@ -58,20 +53,25 @@ def upload_file():
     if file.filename == "":
         return "No selected file", 400
 
-    # Сохраняем временный файл
     temp_path = os.path.join(app.config["UPLOAD_FOLDER"], f"temp_{file.filename}")
     file.save(temp_path)
 
-    # Если это аудио (голосовое сообщение), конвертируем в mp3
     filename = file.filename
     if file.mimetype.startswith("audio/") or file.filename.endswith(".webm"):
-        audio = AudioSegment.from_file(temp_path)
-        filename = f"voice_{int(eventlet.time.time() * 1000)}.mp3"
+        try:
+            audio = AudioSegment.from_file(temp_path)
+            filename = f"voice_{int(eventlet.time.time() * 1000)}.mp3"
+            output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            audio.export(output_path, format="mp3")
+            os.remove(temp_path)
+        except Exception as e:
+            os.remove(temp_path)
+            return f"Error converting audio: {str(e)}", 500
+    elif file.mimetype.startswith("video/"):
+        filename = f"video_{int(eventlet.time.time() * 1000)}.mp4"
         output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        audio.export(output_path, format="mp3")
-        os.remove(temp_path)  # Удаляем временный файл
+        os.rename(temp_path, output_path)
     else:
-        # Для изображений просто переименовываем
         output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         os.rename(temp_path, output_path)
 
@@ -82,7 +82,7 @@ def upload_file():
 def handle_user_active(data):
     users[data["username"]] = {
         "avatar": data["avatar"],
-        "last_seen": data.get("last_seen"),
+        "last_seen": eventlet.time.time() * 1000,
     }
     emit("users_list", users, broadcast=True)
 
@@ -105,6 +105,7 @@ def handle_message(data):
         "text": data.get("message"),
         "image": data.get("image"),
         "voice": data.get("voice"),
+        "video": data.get("video"),
     }
     messages.append(msg)
     save_messages(messages)
