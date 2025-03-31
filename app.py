@@ -2,10 +2,14 @@ from flask import Flask, render_template, request, send_from_directory
 from flask_socketio import SocketIO, emit
 import os
 import json
+import eventlet
+
+# Настройка eventlet для асинхронной работы
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="eventlet")
 
 # Пути для локального хранения
 MESSAGES_FILE = "messages.json"
@@ -119,4 +123,5 @@ def delete_message(data):
 
 
 if __name__ == "__main__":
+    # Запуск через eventlet
     socketio.run(app, host="0.0.0.0", port=5001, debug=True)
