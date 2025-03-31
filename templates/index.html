@@ -275,11 +275,37 @@
       }
 
       function requestNotificationPermission() {
-          if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-              Notification.requestPermission().then(permission => {
+          if (!('Notification' in window)) {
+              console.log('Уведомления не поддерживаются в этом браузере');
+              return;
+          }
+
+          // Совместимость с Safari
+          const requestPermission = () => {
+              return new Promise((resolve, reject) => {
+                  const permissionResult = Notification.requestPermission(result => {
+                      resolve(result);
+                  });
+                  if (permissionResult) {
+                      permissionResult.then(resolve, reject);
+                  }
+              });
+          };
+
+          if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+              requestPermission().then(permission => {
                   if (permission === 'granted') {
                       console.log('Разрешение на уведомления получено');
+                      // Тестовое уведомление для Safari
+                      new Notification('Уведомления включены', {
+                          body: 'Теперь вы будете получать сообщения!',
+                          icon: '/static/logo.png'
+                      });
+                  } else {
+                      console.log('Разрешение на уведомления отклонено');
                   }
+              }).catch(err => {
+                  console.error('Ошибка запроса разрешения:', err);
               });
           }
       }
