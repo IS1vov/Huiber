@@ -85,7 +85,7 @@
           font-size: 14px;
           background: #fff;
       }
-      #send-btn, #emoji-btn, #file-btn, #profile-btn {
+      #send-btn, #emoji-btn, #file-btn, #profile-btn, .call-user-btn {
           background: none;
           border: none;
           color: #7b1fa2;
@@ -93,22 +93,13 @@
           margin-left: 10px;
           cursor: pointer;
       }
-      #call-btn {
-          position: fixed;
-          right: 20px;
-          top: 50%;
-          transform: translateY(-50%);
+      .call-user-btn {
           background-color: #8b4513;
           color: white;
-          padding: 20px 40px;
-          border: none;
-          border-radius: 10px;
-          font-size: 18px;
-          font-weight: bold;
-          cursor: pointer;
-          z-index: 20;
+          padding: 5px 10px;
+          border-radius: 5px;
       }
-      #call-btn:hover {
+      .call-user-btn:hover {
           background-color: #a0522d;
       }
       #username-form, #profile-modal, #call-modal, #call-window {
@@ -182,7 +173,6 @@
   </head>
   <body>
     <h1>Huiber <button id="profile-btn">Профиль</button></h1>
-    <button id="call-btn" onclick="initiateCall()">Позвонить</button>
     <div id="username-form" style="display: none;">
       <input type="text" id="username" placeholder="Введи своё имя" />
       <br />
@@ -271,8 +261,6 @@
       let users = {};
       let peerConnection;
       let localStream;
-      let callTimer;
-      let hasAccepted = false;
       let currentTarget;
       const ringtone = document.getElementById('ringtone');
 
@@ -282,7 +270,7 @@
           document.getElementById('chat-container').style.display = 'block';
           updateMessageStyles();
           socket.emit('user_active', { username: username, avatar: avatar });
-          socket.emit('get_users', {});
+          socket.emit('get_users');
       }
 
       function setUsername() {
@@ -301,7 +289,7 @@
                       document.getElementById('chat-container').style.display = 'block';
                       updateMessageStyles();
                       socket.emit('user_active', { username: username, avatar: avatar });
-                      socket.emit('get_users', {});
+                      socket.emit('get_users');
                   });
           }
       }
@@ -323,7 +311,7 @@
                           document.getElementById('profile-modal').style.display = 'none';
                           updateMessageStyles();
                           socket.emit('user_active', { username: username, avatar: avatar });
-                          socket.emit('get_users', {});
+                          socket.emit('get_users');
                           location.reload();
                       });
               } else {
@@ -332,7 +320,7 @@
                   document.getElementById('profile-modal').style.display = 'none';
                   updateMessageStyles();
                   socket.emit('user_active', { username: username, avatar: avatar });
-                  socket.emit('get_users', {});
+                  socket.emit('get_users');
                   location.reload();
               }
           }
@@ -370,14 +358,16 @@
           const usersContent = document.getElementById('users-content');
           usersContent.innerHTML = '';
           for (const [user, info] of Object.entries(users)) {
-              const lastSeenUTC = new Date(info.last_seen);
-              const localOffset = new Date().getTimezoneOffset() * -1;
-              const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000);
-              const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
-              const div = document.createElement('div');
-              div.className = 'user-item';
-              div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span>`;
-              usersContent.appendChild(div);
+              if (user !== username) { // Не показываем себя
+                  const lastSeenUTC = new Date(info.last_seen);
+                  const localOffset = new Date().getTimezoneOffset() * -1;
+                  const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000);
+                  const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
+                  const div = document.createElement('div');
+                  div.className = 'user-item';
+                  div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span><button class="call-user-btn" onclick="callUser('${user}')">Позвонить</button>`;
+                  usersContent.appendChild(div);
+              }
           }
       }
 
@@ -437,7 +427,7 @@
           document.getElementById('emoji-picker').style.display = 'none';
       }
 
-      // WebRTC логика (только аудио)
+      // WebRTC логика
       const configuration = {
           iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
@@ -446,13 +436,10 @@
           ]
       };
 
-      async function initiateCall() {
-          const availableUsers = Object.keys(users).filter(u => u !== username);
-          if (availableUsers.length === 0) {
-              alert("В сети нет других пользователей для звонка.");
-              return;
-          }
-          currentTarget = availableUsers[0]; // Звоним первому доступному
+      async function callUser(target) {
+          if (!username) return;
+          currentTarget = target;
+
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           peerConnection = new RTCPeerConnection(configuration);
 
@@ -460,11 +447,7 @@
 
           peerConnection.onicecandidate = event => {
               if (event.candidate) {
-                  socket.emit('ice_candidate', {
-                      target: currentTarget,
-                      candidate: event.candidate,
-                      caller: username
-                  });
+                  socket.emit('ice_candidate', { target: currentTarget, candidate: event.candidate, caller: username });
               }
           };
 
@@ -480,18 +463,11 @@
 
           const offer = await peerConnection.createOffer();
           await peerConnection.setLocalDescription(offer);
-          socket.emit('initiate_call', { username: username, target: currentTarget });
+          socket.emit('call_user', { caller: username, target: currentTarget });
           socket.emit('offer', { offer: offer, target: currentTarget, caller: username });
-
-          callTimer = setTimeout(() => {
-              if (!hasAccepted) {
-                  alert("Тебе никто никогда не поднимет");
-                  endCall();
-              }
-          }, 10000);
       }
 
-      socket.on('incoming_call', function(data) {
+      socket.on('incoming_call', async function(data) {
           currentTarget = data.caller;
           document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentTarget})`;
           document.getElementById('call-modal').style.display = 'block';
@@ -499,8 +475,6 @@
       });
 
       async function acceptCall() {
-          hasAccepted = true;
-          clearTimeout(callTimer);
           document.getElementById('call-modal').style.display = 'none';
           ringtone.pause();
           ringtone.currentTime = 0;
@@ -512,11 +486,7 @@
 
           peerConnection.onicecandidate = event => {
               if (event.candidate) {
-                  socket.emit('ice_candidate', {
-                      target: currentTarget,
-                      candidate: event.candidate,
-                      caller: username
-                  });
+                  socket.emit('ice_candidate', { target: currentTarget, candidate: event.candidate, caller: username });
               }
           };
 
@@ -540,14 +510,18 @@
           });
 
           socket.on('answer', async function(data) {
-              if (data.target === username) {
+              if (data.target === username && peerConnection) {
                   await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
               }
           });
 
           socket.on('ice_candidate', async function(data) {
-              if (data.caller === currentTarget) {
-                  await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+              if (data.caller === currentTarget && peerConnection) {
+                  try {
+                      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                  } catch (e) {
+                      console.error('Ошибка добавления ICE candidate:', e);
+                  }
               }
           });
       }
@@ -572,15 +546,13 @@
           document.getElementById('call-window').style.display = 'none';
           ringtone.pause();
           ringtone.currentTime = 0;
-          hasAccepted = false;
-          clearTimeout(callTimer);
           currentTarget = null;
       }
 
       setInterval(() => {
           if (username) {
               socket.emit('user_active', { username: username, avatar: avatar });
-              socket.emit('get_users', {});
+              socket.emit('get_users');
           }
       }, 10000);
     </script>

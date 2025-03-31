@@ -100,7 +100,7 @@ def handle_delete(data):
 
 
 @socketio.on("get_users")
-def handle_get_users(data):
+def handle_get_users():
     logger.info("Запрос списка пользователей")
     users_serializable = {
         u: {"avatar": info["avatar"], "last_seen": info["last_seen"].isoformat()}
@@ -109,10 +109,10 @@ def handle_get_users(data):
     emit("users_list", users_serializable, room=request.sid)
 
 
-@socketio.on("initiate_call")
-def handle_initiate_call(data):
-    logger.info(f"Инициирован звонок: {data}")
-    caller = data.get("username")
+@socketio.on("call_user")
+def handle_call_user(data):
+    logger.info(f"Звонок пользователю: {data}")
+    caller = data.get("caller")
     target = data.get("target")
     if target in users:
         emit("incoming_call", {"caller": caller}, room=users[target]["sid"])
