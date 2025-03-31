@@ -4,280 +4,529 @@
     <meta charset="UTF-8" />
     <title>Huiber</title>
     <link rel="icon" type="image/png" href="/static/logo.png" />
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <style>
-      /* ... (keep all your existing CSS styles) ... */
-       body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            background: url('/static/background.png') no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 {
-            font-size: 24px;
-            color: #4a148c;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-        }
-        #chat-container, #username-form, #profile-modal, #users-list, #call-modal, #call-window {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #ce93d8;
-            border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px; /* Added margin between elements */
-        }
-         #chat {
-            height: 400px; /* Adjusted height slightly */
-            overflow-y: auto;
-            padding: 20px;
-            background: #f3e5f5;
-            border-top-left-radius: 15px; /* Rounded corners */
-            border-top-right-radius: 15px;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 10px 15px; /* Adjusted padding */
-            border-radius: 20px;
-            max-width: 75%; /* Slightly wider */
-            word-wrap: break-word;
-            display: flex;
-            align-items: center;
-            line-height: 1.4; /* Improved readability */
-        }
-        .my-message {
-            background-color: #ab47bc;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 5px; /* Different corner for visual cue */
-        }
-        .other-message {
-            background-color: #f06292;
-            color: white;
-            margin-right: auto;
-            border-bottom-left-radius: 5px; /* Different corner for visual cue */
-        }
-        .username {
-            font-weight: 600;
-            margin-right: 5px; /* Space after username */
-            margin-left: 5px;
-        }
-        .message img.content-img {
-            max-width: 100%;
-            max-height: 250px; /* Limit image height */
-            object-fit: cover; /* Maintain aspect ratio */
-            border-radius: 10px;
-            margin-top: 8px; /* Space above image */
-            cursor: pointer; /* Indicate it's clickable */
-        }
-        .avatar {
-            width: 30px; /* Slightly larger avatar */
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 8px; /* More space */
-            align-self: flex-start; /* Align avatar top */
-        }
-        #input-area {
-            display: flex;
-            padding: 15px; /* Adjusted padding */
-            border-top: 1px solid #ce93d8;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
-            border-bottom-left-radius: 15px; /* Rounded corners */
-            border-bottom-right-radius: 15px;
-        }
-        #message {
-            flex: 1;
-            padding: 10px 15px; /* More padding */
-            border: 1px solid #ce93d8;
-            border-radius: 20px;
-            outline: none;
-            font-size: 14px;
-            background: #fff;
-            margin-right: 10px; /* Space between input and buttons */
-        }
-        #send-btn, #emoji-btn, #file-btn, #profile-btn, .call-user-btn {
-            background: none;
-            border: none;
-            color: #7b1fa2;
-            font-size: 20px; /* Larger icons/buttons */
-            font-weight: normal; /* Normal weight */
-            margin-left: 5px; /* Reduced margin */
-            cursor: pointer;
-            padding: 5px; /* Padding for click area */
-            transition: color 0.2s ease; /* Smooth hover */
-        }
-        #send-btn:hover, #emoji-btn:hover, #file-btn:hover, #profile-btn:hover {
-             color: #4a148c; /* Darker purple on hover */
-        }
-        .call-user-btn {
-            background-color: #4caf50; /* Green call button */
-            color: white;
-            padding: 6px 12px; /* Adjusted padding */
-            border-radius: 15px; /* Rounded button */
-            font-size: 12px; /* Smaller font */
-            margin-left: auto; /* Push to the right */
-            font-weight: 500;
-            transition: background-color 0.2s ease;
-        }
-        .call-user-btn:hover {
-            background-color: #388e3c; /* Darker green */
-        }
-        #username-form, #profile-modal, #call-modal, #call-window {
-            padding: 30px; /* More padding */
-            text-align: center;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-            z-index: 1000; /* Ensure modals are on top */
-             width: 90%; /* Responsive width */
-            max-width: 400px; /* Max width for modals */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow */
-        }
-        #username, #avatar, #new-username, #new-avatar {
-            padding: 12px; /* More padding */
-            border: 1px solid #ce93d8;
-            border-radius: 8px; /* Rounded inputs */
-            width: calc(100% - 26px); /* Full width minus padding/border */
-            margin-bottom: 15px; /* More space */
-            box-sizing: border-box; /* Include padding in width */
-        }
-        #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn, #end-call-btn {
-            background-color: #ab47bc;
-            color: white;
-            border: none;
-            padding: 10px 20px; /* Bigger buttons */
-            border-radius: 8px; /* Rounded buttons */
-            cursor: pointer;
-            margin: 10px 5px 0; /* Spacing */
-            font-size: 14px;
-            transition: background-color 0.2s ease;
-        }
-         #save-btn:hover, #save-profile-btn:hover, #accept-call-btn:hover, #reject-call-btn:hover, #end-call-btn:hover {
-            background-color: #8e24aa; /* Darker purple */
-        }
-         #accept-call-btn { background-color: #4caf50; } /* Green accept */
-         #accept-call-btn:hover { background-color: #388e3c; }
-         #reject-call-btn, #end-call-btn { background-color: #f44336; } /* Red reject/end */
-         #reject-call-btn:hover, #end-call-btn:hover { background-color: #d32f2f; }
+      /* --- Стили CSS --- */
+      body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          margin: 0;
+          background: url('/static/background.png') no-repeat center center fixed;
+          background-size: cover;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          color: #333; /* Базовый цвет текста */
+      }
+      h1 {
+          font-size: 28px; /* Немного крупнее */
+          color: #4a148c; /* Фиолетовый */
+          margin: 25px 0;
+          display: flex;
+          align-items: center;
+          justify-content: center; /* Центрируем заголовок */
+          width: 100%;
+          position: relative; /* Для позиционирования кнопки профиля */
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      h1 button#profile-btn {
+           font-size: 16px; /* Размер кнопки профиля */
+           margin-left: 15px;
+           padding: 8px 12px;
+           background-color: #e1bee7; /* Светло-фиолетовый фон */
+           color: #4a148c;
+           border: none;
+           border-radius: 20px; /* Сильно скругленные углы */
+           cursor: pointer;
+           transition: background-color 0.2s ease;
+           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      h1 button#profile-btn:hover {
+          background-color: #ce93d8; /* Темнее при наведении */
+      }
 
-        #emoji-picker {
-            display: none;
-            position: absolute;
-            bottom: 80px; /* Positioned above input */
-            right: 20px; /* Align to right */
-            background: white;
-            border: 1px solid #ce93d8;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-            z-index: 10;
-        }
-        .emoji {
-            font-size: 24px; /* Larger emoji */
-            cursor: pointer;
-            margin: 5px 8px; /* More spacing */
-            display: inline-block; /* Ensure proper spacing */
-            transition: transform 0.1s ease;
-        }
-         .emoji:hover {
-            transform: scale(1.2); /* Zoom effect */
-        }
-        .delete-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7); /* Lighter delete color */
-            font-weight: normal; /* Normal weight */
-            margin-left: 10px;
-            cursor: pointer;
-            display: none; /* Hide by default */
-            font-size: 12px; /* Smaller delete button */
-            padding: 2px 5px;
-        }
-        .my-message:hover .delete-btn { /* Show on hover for own messages */
-             display: inline;
-             color: #ffcdd2; /* Light red on hover */
-        }
-         .delete-btn:hover {
-            color: #e57373; /* Darker red on hover */
-         }
+      #chat-container, #username-form, #profile-modal, #users-list, #call-modal, #call-window {
+          width: 100%;
+          max-width: 650px; /* Немного шире */
+          background: rgba(255, 255, 255, 0.92); /* Чуть менее прозрачный фон */
+          border: 1px solid #ce93d8; /* Фиолетовая граница */
+          border-radius: 18px; /* Более скругленные углы */
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Усиленная тень */
+          margin-bottom: 20px; /* Больше отступ снизу */
+          display: flex; /* Используем flex для контейнеров */
+          flex-direction: column; /* Элементы внутри идут столбиком */
+      }
 
-        #users-list {
-            padding: 20px;
-            margin-top: 0; /* Remove top margin if chat is displayed */
-             border-top-left-radius: 0; /* Align with chat container */
-             border-top-right-radius: 0;
-             border-top: 1px solid #e1bee7; /* Separator line */
-             background: rgba(255, 255, 255, 0.85); /* Slightly different background */
+      /* Стили для модальных окон (переопределение) */
+      #username-form, #profile-modal, #call-modal, #call-window {
+          padding: 35px;
+          text-align: center;
+          position: fixed; /* Остаются модальными */
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          display: none; /* Скрыты по умолчанию */
+          z-index: 1000;
+          width: 90%;
+          max-width: 450px; /* Макс ширина модалок */
+           flex-direction: column; /* Элементы внутри столбиком */
+           align-items: center; /* Центрируем элементы */
+      }
+       #username-form h3, #profile-modal h3, #call-modal h3, #call-window h3 {
+           margin-top: 0;
+           margin-bottom: 20px;
+           color: #6a1b9a; /* Темно-фиолетовый */
+           font-size: 20px;
+       }
+        #username-form p {
+           margin-bottom: 15px;
+           color: #555;
         }
-        #users-list h3 {
-            margin-top: 0;
-            color: #6a1b9a; /* Darker purple heading */
-            border-bottom: 1px solid #e1bee7;
-            padding-bottom: 10px;
-        }
-        .user-item {
-            display: flex;
-            align-items: center;
-            margin: 15px 0; /* More vertical spacing */
-            padding: 10px; /* Padding inside item */
-            border-radius: 8px; /* Rounded item */
-            transition: background-color 0.2s ease;
-        }
-         .user-item:hover {
-             background-color: #f3e5f5; /* Light purple hover */
-         }
-        .user-item img.avatar { /* Use avatar class for consistency */
-             width: 40px;
-             height: 40px;
-             margin-right: 15px; /* More space */
-        }
-         .user-item span {
-             flex-grow: 1; /* Allow text to take available space */
-             font-size: 14px;
-             color: #4a148c;
-         }
-          .user-item .last-seen {
-              font-size: 11px;
-              color: #7b1fa2;
-              display: block; /* Show on new line */
-              margin-top: 2px;
-          }
 
-         #call-window {
-             background-color: #e1f5fe; /* Light blue background */
-             border-color: #81d4fa;
-         }
-          #call-window h3 {
-             color: #0277bd;
-         }
-          #call-participants {
-              margin: 15px 0;
-              font-weight: 500;
-              color: #03a9f4;
-          }
-           /* Spinner/Indicator for connecting? (Optional) */
-          .connecting-indicator {
-              /* Style for a visual indicator while connecting */
-              display: none; /* Show when needed via JS */
-              margin: 10px auto;
-              border: 4px solid #f3f3f3;
-              border-top: 4px solid #03a9f4;
-              border-radius: 50%;
-              width: 30px;
-              height: 30px;
-              animation: spin 1s linear infinite;
-          }
-           @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-          }
+       /* Поля ввода в модалках */
+       #username, #avatar, #new-username, #new-avatar {
+          padding: 12px 15px;
+          border: 1px solid #ce93d8;
+          border-radius: 8px;
+          width: calc(100% - 32px); /* Полная ширина минус паддинги */
+          margin-bottom: 15px;
+          box-sizing: border-box;
+          font-size: 15px;
+       }
+       /* Стили для file input label */
+       label.file-input-label {
+           display: inline-block;
+           padding: 10px 15px;
+           background-color: #f3e5f5;
+           color: #7b1fa2;
+           border: 1px dashed #ce93d8;
+           border-radius: 8px;
+           cursor: pointer;
+           margin-bottom: 15px;
+           transition: background-color 0.2s ease;
+       }
+       label.file-input-label:hover {
+           background-color: #e1bee7;
+       }
+       /* Превью аватара */
+       img.avatar-preview {
+           max-width: 100px;
+           max-height: 100px;
+           border-radius: 50%;
+           margin-bottom: 15px;
+           display: none; /* Скрыто пока нет файла */
+           border: 2px solid #ce93d8;
+           padding: 3px;
+           background-color: white;
+       }
+
+       /* Кнопки в модалках */
+       #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn, #end-call-btn, .modal-cancel-btn {
+          background-color: #ab47bc; /* Основной фиолетовый */
+          color: white;
+          border: none;
+          padding: 12px 25px; /* Крупнее кнопки */
+          border-radius: 8px;
+          cursor: pointer;
+          margin: 10px 5px 0;
+          font-size: 15px;
+          font-weight: 500;
+          transition: background-color 0.2s ease, box-shadow 0.2s ease;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+       }
+       #save-btn:hover, #save-profile-btn:hover, #accept-call-btn:hover, #reject-call-btn:hover, #end-call-btn:hover, .modal-cancel-btn:hover {
+          background-color: #8e24aa; /* Темнее при наведении */
+           box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+       }
+        /* Специфичные цвета кнопок звонка */
+        #accept-call-btn { background-color: #4caf50; } /* Зеленый */
+        #accept-call-btn:hover { background-color: #388e3c; }
+        #reject-call-btn, #end-call-btn { background-color: #f44336; } /* Красный */
+        #reject-call-btn:hover, #end-call-btn:hover { background-color: #d32f2f; }
+        .modal-cancel-btn { background-color: #9e9e9e; } /* Серый для отмены */
+        .modal-cancel-btn:hover { background-color: #757575; }
+
+
+      /* --- Чат --- */
+      #chat {
+          flex-grow: 1; /* Занимает доступное место */
+          height: 450px; /* Фиксированная высота для скролла */
+          overflow-y: auto;
+          padding: 20px;
+          background: #f3e5f5; /* Светло-фиолетовый фон чата */
+          border-bottom: 1px solid #e1bee7; /* Разделитель */
+          /* Скругление только верхних углов, если input-area внизу */
+           border-top-left-radius: 18px;
+           border-top-right-radius: 18px;
+           display: flex;
+           flex-direction: column; /* Сообщения идут столбиком */
+      }
+       #chat:empty::before { /* Плейсхолдер для пустого чата */
+           content: "Пока нет сообщений...";
+           display: block;
+           text-align: center;
+           color: #7b1fa2;
+           padding: 50px 0;
+           font-style: italic;
+       }
+
+      /* Сообщения */
+      .message {
+          margin-bottom: 12px; /* Отступ между сообщениями */
+          padding: 10px 15px;
+          border-radius: 18px; /* Более скругленные сообщения */
+          max-width: 78%; /* Макс ширина сообщения */
+          word-wrap: break-word;
+          display: flex; /* Используем flex для аватара и контента */
+          align-items: flex-start; /* Аватар и текст сверху */
+          line-height: 1.45; /* Улучшенная читаемость */
+          position: relative; /* Для кнопки удаления */
+      }
+      .my-message {
+          background-color: #ab47bc; /* Фиолетовый для своих */
+          color: white;
+          margin-left: auto; /* Справа */
+          border-bottom-right-radius: 5px; /* Другой угол для визуального отличия */
+           flex-direction: row-reverse; /* Аватар справа */
+      }
+      .other-message {
+          background-color: #e1bee7; /* Светло-фиолетовый для чужих */
+          color: #333; /* Темный текст */
+          margin-right: auto; /* Слева */
+          border-bottom-left-radius: 5px;
+           flex-direction: row; /* Аватар слева */
+      }
+      .avatar {
+          width: 35px; /* Крупнее аватар */
+          height: 35px;
+          border-radius: 50%;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          margin: 0 10px; /* Отступы вокруг аватара */
+          flex-shrink: 0; /* Не сжимать аватар */
+      }
+      .my-message .avatar { margin-left: 10px; margin-right: 0; } /* Отступ слева для своего аватара */
+      .other-message .avatar { margin-right: 10px; margin-left: 0; }
+
+       .message-content-wrapper {
+           display: flex;
+           flex-direction: column; /* Имя и текст/картинка столбиком */
+           flex-grow: 1; /* Занимать доступное место */
+       }
+      .username {
+          font-weight: 600;
+          font-size: 13px; /* Меньше имя пользователя */
+          margin-bottom: 3px; /* Отступ под именем */
+          color: rgba(0, 0, 0, 0.6); /* Темно-серый цвет имени */
+      }
+       /* Имя пользователя в своих сообщениях */
+      .my-message .username {
+           color: rgba(255, 255, 255, 0.8); /* Светлое имя */
+           text-align: right; /* Выравнивание по правому краю для своих сообщений */
+      }
+       .message-text {
+          font-size: 15px; /* Размер основного текста */
+       }
+      .message img.content-img {
+          max-width: 100%;
+          max-height: 300px;
+          object-fit: cover;
+          border-radius: 10px;
+          margin-top: 8px;
+          cursor: pointer;
+           border: 1px solid rgba(0,0,0,0.1);
+      }
+       /* Кнопка удаления */
+      .delete-btn {
+          background: none;
+          border: none;
+          color: rgba(255, 255, 255, 0.6); /* Белый полупрозрачный для своих */
+          font-weight: normal;
+          position: absolute; /* Позиционируем относительно сообщения */
+          top: 5px;
+          right: 8px;
+          cursor: pointer;
+          display: none; /* Скрыта по умолчанию */
+          font-size: 16px;
+          padding: 2px;
+          line-height: 1;
+           opacity: 0.7;
+           transition: opacity 0.2s ease;
+      }
+       /* Показываем кнопку при наведении на свое сообщение */
+      .my-message:hover .delete-btn {
+          display: block;
+      }
+       .delete-btn:hover {
+           opacity: 1.0;
+           color: #ffcdd2; /* Светло-красный при наведении */
+       }
+       /* Для чужих сообщений кнопка не нужна */
+       .other-message .delete-btn { display: none !important; }
+
+
+      /* --- Область ввода --- */
+      #input-area {
+          display: flex;
+          padding: 15px 20px;
+          border-top: 1px solid #ce93d8;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.95);
+           /* Скругление только нижних углов */
+           border-bottom-left-radius: 18px;
+           border-bottom-right-radius: 18px;
+      }
+      #message {
+          flex: 1;
+          padding: 12px 18px;
+          border: 1px solid #ce93d8;
+          border-radius: 25px; /* Сильно скругленное поле ввода */
+          outline: none;
+          font-size: 15px;
+          background: #fff;
+          margin-right: 10px;
+           resize: none; /* Запретить изменение размера */
+           min-height: 20px; /* Минимальная высота для одной строки */
+           max-height: 100px; /* Максимальная высота для нескольких строк */
+           overflow-y: auto; /* Добавить скролл, если текста много */
+      }
+      #input-area button {
+          background: none;
+          border: none;
+          color: #7b1fa2; /* Фиолетовый для иконок */
+          font-size: 24px; /* Крупнее иконки */
+          margin-left: 8px;
+          cursor: pointer;
+          padding: 5px;
+          transition: color 0.2s ease, transform 0.1s ease;
+           line-height: 1; /* Убрать лишнюю высоту строки */
+      }
+      #input-area button:hover {
+          color: #4a148c; /* Темнее при наведении */
+      }
+       #input-area button:active {
+           transform: scale(0.9); /* Эффект нажатия */
+       }
+       #send-btn {
+           font-weight: bold;
+       }
+       /* Превью картинки для отправки */
+      #message-preview-container {
+           padding: 0 20px 10px;
+           text-align: left; /* Выравнивание влево */
+           display: none; /* Скрыто по умолчанию */
+           background: rgba(255, 255, 255, 0.95); /* Тот же фон, что и у input-area */
+      }
+       #message-preview {
+           max-width: 80px;
+           max-height: 80px;
+           border-radius: 5px;
+           margin-top: 5px;
+           border: 1px solid #eee;
+           vertical-align: middle; /* Выравнивание по центру строки */
+       }
+       #message-preview-container button { /* Кнопка отмены превью */
+           font-size: 16px; /* Размер крестика */
+           background: none;
+           border: none;
+           color: #aaa;
+           cursor: pointer;
+           padding: 0 5px;
+           margin-left: 5px;
+           vertical-align: middle;
+       }
+        #message-preview-container button:hover {
+           color: #f44336; /* Красный при наведении */
+        }
+
+      /* --- Выбор эмодзи --- */
+      #emoji-picker {
+          display: none;
+          position: absolute;
+          bottom: 75px; /* Выше поля ввода */
+          right: 20px;
+          background: white;
+          border: 1px solid #ce93d8;
+          padding: 15px;
+          border-radius: 10px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+          z-index: 1001; /* Выше остальных элементов */
+           width: auto; /* Авто ширина */
+           max-width: 300px; /* Макс ширина */
+      }
+      .emoji {
+          font-size: 26px; /* Крупнее эмодзи */
+          cursor: pointer;
+          margin: 4px 6px;
+          display: inline-block;
+          transition: transform 0.1s ease;
+      }
+      .emoji:hover {
+          transform: scale(1.2); /* Эффект зума */
+      }
+
+      /* --- Список пользователей --- */
+      #users-list {
+          padding: 20px 25px;
+          margin-top: 0; /* Убираем верхний отступ, если чат виден */
+           /* Скругление только нижних углов, если он под чатом */
+           border-top-left-radius: 0;
+           border-top-right-radius: 0;
+           border-top: 1px solid #e1bee7; /* Разделитель */
+           background: rgba(255, 255, 255, 0.9); /* Чуть прозрачнее */
+            border-bottom-left-radius: 18px; /* Скругляем и низ */
+            border-bottom-right-radius: 18px;
+      }
+      #users-list h3 {
+          margin-top: 0;
+          margin-bottom: 15px;
+          color: #6a1b9a;
+          border-bottom: 1px solid #e1bee7;
+          padding-bottom: 10px;
+          font-size: 18px; /* Размер заголовка списка */
+      }
+       #users-content:empty::before { /* Плейсхолдер для пустого списка */
+           content: "Других пользователей нет онлайн";
+           display: block;
+           text-align: center;
+           color: #7b1fa2;
+           padding: 20px 0;
+           font-style: italic;
+       }
+      .user-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 12px;
+          padding: 10px;
+          border-radius: 10px;
+          transition: background-color 0.2s ease;
+          position: relative; /* Для кнопки звонка */
+      }
+      .user-item:hover {
+          background-color: #f3e5f5;
+      }
+      .user-item img.avatar { /* Стили аватара в списке */
+          width: 45px; /* Крупнее аватар в списке */
+          height: 45px;
+          margin-right: 15px;
+           border: 2px solid transparent; /* Граница для статуса */
+      }
+        /* Статус пользователя */
+       .user-item img.avatar.online { border-color: #4caf50; /* Зеленая граница для онлайна */}
+       .user-item img.avatar.offline { border-color: #ccc; /* Серая граница для офлайна */}
+
+       .user-item .user-info {
+           flex-grow: 1;
+       }
+       .user-item span.username-in-list { /* Имя пользователя в списке */
+           font-size: 15px;
+           font-weight: 500;
+           color: #4a148c;
+           display: block; /* Имя на своей строке */
+       }
+       .user-item .last-seen {
+           font-size: 11px;
+           color: #7b1fa2;
+           display: block;
+           margin-top: 2px;
+       }
+        .user-item .last-seen.online { color: #4caf50; font-weight: 500; } /* Зеленый статус */
+        .user-item .last-seen.offline { color: #9e9e9e; } /* Серый статус */
+
+       /* Кнопка звонка */
+       .call-user-btn {
+          background-color: #4caf50;
+          color: white;
+          padding: 8px 10px; /* Меньше паддинг */
+          border-radius: 50%; /* Круглая кнопка */
+          font-size: 18px; /* Размер иконки звонка */
+          margin-left: 15px; /* Отступ слева */
+          cursor: pointer;
+          border: none;
+          transition: background-color 0.2s ease, transform 0.1s ease;
+           line-height: 1; /* Убрать лишнюю высоту */
+           flex-shrink: 0; /* Не сжимать кнопку */
+       }
+       .call-user-btn:hover {
+          background-color: #388e3c;
+       }
+        .call-user-btn:active {
+           transform: scale(0.9);
+       }
+
+
+      /* --- Окно активного звонка --- */
+      #call-window {
+           background-color: #e1f5fe; /* Светло-голубой фон */
+           border-color: #81d4fa;
+      }
+       #call-window h3 {
+           color: #0277bd;
+       }
+       #call-participants {
+           margin: 15px 0;
+           font-weight: 500;
+           color: #03a9f4;
+           min-height: 20px; /* Резервируем место */
+       }
+        /* Индикатор загрузки/соединения */
+       .connecting-indicator {
+           display: none; /* Показываем через JS */
+           margin: 10px auto;
+           border: 5px solid #f3f3f3; /* Светлый фон */
+           border-top: 5px solid #03a9f4; /* Синий */
+           border-radius: 50%;
+           width: 35px;
+           height: 35px;
+           animation: spin 1.2s linear infinite;
+       }
+        @keyframes spin {
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+       }
+
+        /* Скрытый аудио элемент */
+        #remote-audio {
+           display: none;
+        }
+
+       /* --- Модальное окно для изображений --- */
+       #imageModal {
+           display: none;
+           position: fixed;
+           z-index: 2000; /* Выше всего */
+           left: 0;
+           top: 0;
+           width: 100%;
+           height: 100%;
+           overflow: auto;
+           background-color: rgba(0,0,0,0.85); /* Темнее фон */
+           cursor: pointer; /* Указываем, что можно кликнуть для закрытия */
+       }
+       #modalImage {
+           margin: auto;
+           display: block;
+           max-width: 90%;
+           max-height: 85%;
+           position: absolute;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, -50%);
+            border-radius: 5px;
+            cursor: default; /* Обычный курсор на самом изображении */
+       }
+       #imageModal .close-modal-btn { /* Кнопка закрытия */
+           position: absolute;
+           top: 15px;
+           right: 30px;
+           color: #f1f1f1;
+           font-size: 45px;
+           font-weight: bold;
+           cursor: pointer;
+           transition: color 0.2s ease;
+           line-height: 1;
+       }
+       #imageModal .close-modal-btn:hover {
+           color: #bbb;
+       }
     </style>
   </head>
   <body>
@@ -288,11 +537,7 @@
       <p>Представьтесь и выберите аватар:</p>
       <input type="text" id="username" placeholder="Ваше имя" required />
       <br />
-      <label
-        for="avatar"
-        style="cursor: pointer; color: #7b1fa2; margin-bottom: 10px; display: inline-block;"
-        >📷 Выбрать аватар</label
-      >
+      <label for="avatar" class="file-input-label">📷 Выбрать аватар</label>
       <input
         type="file"
         id="avatar"
@@ -305,7 +550,7 @@
         id="avatar-preview"
         src="#"
         alt="Предпросмотр аватара"
-        style="max-width: 100px; max-height: 100px; border-radius: 50%; margin-bottom: 15px; display: none;"
+        class="avatar-preview"
       />
       <br />
       <button id="save-btn" onclick="setUsername()">Войти в чат</button>
@@ -315,11 +560,7 @@
       <h3>Редактировать профиль</h3>
       <input type="text" id="new-username" placeholder="Новое имя" />
       <br />
-      <label
-        for="new-avatar"
-        style="cursor: pointer; color: #7b1fa2; margin-bottom: 10px; display: inline-block;"
-        >📷 Сменить аватар</label
-      >
+      <label for="new-avatar" class="file-input-label">📷 Сменить аватар</label>
       <input
         type="file"
         id="new-avatar"
@@ -331,11 +572,12 @@
         id="new-avatar-preview"
         src="#"
         alt="Предпросмотр нового аватара"
-        style="max-width: 100px; max-height: 100px; border-radius: 50%; margin-bottom: 15px; display: none;"
+        class="avatar-preview"
       />
       <br />
       <button id="save-profile-btn" onclick="updateProfile()">Сохранить</button>
       <button
+        class="modal-cancel-btn"
         onclick="document.getElementById('profile-modal').style.display = 'none'"
       >
         Отмена
@@ -344,7 +586,7 @@
 
     <div id="call-modal" style="display: none;">
       <h3 id="call-text">Входящий звонок...</h3>
-      <p>📞</p>
+      <p style="font-size: 40px;">📞</p>
       <button id="accept-call-btn" onclick="acceptCall()">Принять</button>
       <button id="reject-call-btn" onclick="rejectCall()">Отклонить</button>
     </div>
@@ -353,47 +595,17 @@
       <h3>🔊 Аудиозвонок</h3>
       <div class="connecting-indicator" id="connecting-indicator"></div>
       <p id="call-participants">Соединение...</p>
-      <audio id="remote-audio" autoplay style="display: none;"></audio>
+      <audio
+        id="remote-audio"
+        autoplay
+        playsinline
+        style="display: none;"
+      ></audio>
       <button id="end-call-btn" onclick="endCall()">Завершить</button>
     </div>
 
     <div id="chat-container" style="display: none;">
-      <div id="chat">
-        {% for msg in messages %}
-        <div
-          class="message {% if msg.username == session.get('username') %}my-message{% else %}other-message{% endif %}"
-          data-id="{{ msg.id }}"
-          data-username="{{ msg.username }}"
-        >
-          {% if msg.username in users and users[msg.username].avatar %}
-          <img
-            src="/static/uploads/{{ users[msg.username].avatar }}"
-            class="avatar"
-            alt="{{ msg.username }}'s avatar"
-          />
-          {% else %}
-          <img src="/static/logo.png" class="avatar" alt="Default avatar" /> {%
-          endif %}
-          <div>
-            <span class="username">{{ msg.username }}:</span>
-            <span class="message-text">{{ msg.text }}</span>
-            {% if msg.image %}
-            <img
-              src="/static/uploads/{{ msg.image }}"
-              class="content-img"
-              onclick="openImageModal('/static/uploads/{{ msg.image }}')"
-              alt="Изображение пользователя"
-            />
-            {% endif %}
-          </div>
-          {% if msg.username == session.get('username') %}
-          <button class="delete-btn" onclick="deleteMessage('{{ msg.id }}')">
-            🗑️
-          </button>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
+      <div id="chat"></div>
       <div id="input-area">
         <input type="text" id="message" placeholder="Введите сообщение..." />
         <button id="emoji-btn" title="Эмодзи">😊</button>
@@ -415,20 +627,9 @@
           ➤
         </button>
       </div>
-      <div
-        id="message-preview-container"
-        style="padding: 0 15px 10px; text-align: center; display: none;"
-      >
-        <img
-          id="message-preview"
-          src="#"
-          alt="Предпросмотр изображения"
-          style="max-width: 100px; max-height: 100px; border-radius: 5px; margin-top: 5px;"
-        />
-        <button
-          onclick="clearMessagePreview()"
-          style="font-size: 10px; background: #eee; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; margin-left: 5px;"
-        >
+      <div id="message-preview-container">
+        <img id="message-preview" src="#" alt="Предпросмотр изображения" />
+        <button onclick="clearMessagePreview()" title="Убрать изображение">
           ✖
         </button>
       </div>
@@ -443,128 +644,178 @@
         <span class="emoji" onclick="addEmoji('🔥')">🔥</span>
         <span class="emoji" onclick="addEmoji('👋')">👋</span>
         <span class="emoji" onclick="addEmoji('🙏')">🙏</span>
+        <span class="emoji" onclick="addEmoji('👀')">👀</span>
+        <span class="emoji" onclick="addEmoji('✨')">✨</span>
+        <span class="emoji" onclick="addEmoji('ѝ')">ѝ</span>
       </div>
     </div>
 
-    <div id="users-list">
+    <div id="users-list" style="display: none;">
       <h3>👥 Пользователи онлайн</h3>
       <div id="users-content"></div>
     </div>
 
     <audio id="ringtone" src="/static/ringtone.mp3" loop></audio>
 
-    <div
-      id="imageModal"
-      style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8);"
-    >
-      <span
-        onclick="closeImageModal()"
-        style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;"
+    <div id="imageModal" onclick="closeImageModal()">
+      <span class="close-modal-btn" onclick="closeImageModal(event)"
         >&times;</span
       >
-      <img
-        id="modalImage"
-        style="margin: auto; display: block; max-width: 80%; max-height: 80%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
-      />
+      <img id="modalImage" onclick="event.stopPropagation()" />
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
-      const socket = io();
+      // --- Глобальные переменные и конфигурация ---
+      const socket = io(); // Автоматически подключится к серверу, откуда загружена страница
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
-      let users = {}; // Store user data received from server
+      let users = {}; // Локальный кэш данных пользователей
 
-      // --- WebRTC Globals ---
+      // WebRTC Globals
       let peerConnection;
       let localStream;
-      let currentTarget = null; // User being called or calling us
-      let receivedOffer = null; // To store offer when receiving a call
+      let currentTarget = null; // Пользователь, которому звоним или кто звонит нам
+      let receivedOffer = null; // Хранение оффера при входящем звонке
       const ringtone = document.getElementById('ringtone');
-      const remoteAudio = document.getElementById('remote-audio'); // Get the audio element
+      const remoteAudio = document.getElementById('remote-audio');
 
-      // ICE Server Configuration
+      // ICE Server Configuration (STUN)
       const configuration = {
         iceServers: [
-            // Reliable public STUN servers:
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'stun:stun2.l.google.com:19302' },
             { urls: 'stun:stun3.l.google.com:19302' },
             { urls: 'stun:stun4.l.google.com:19302' },
-            // Consider adding a TURN server for complex network scenarios if needed
-            // { urls: 'turn:your.turn.server:port', username: 'user', credential: 'password' }
+             // Если проблемы сохраняются, рассмотрите добавление TURN сервера
+             // { urls: 'turn:your.turn.server:port', username: 'user', credential: 'password' }
         ]
       };
 
-      // --- Initial Setup ---
-      if (!username || !avatar) { // Require both username and avatar
-        document.getElementById('username-form').style.display = 'block';
-        // Add preview logic for initial avatar selection
-        document.getElementById('avatar').onchange = (event) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const preview = document.getElementById('avatar-preview');
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            if(event.target.files[0]){
-                 reader.readAsDataURL(event.target.files[0]);
-            } else {
-                 document.getElementById('avatar-preview').style.display = 'none';
-                 document.getElementById('avatar-preview').src = '#';
-            }
-        };
-      } else {
-        document.getElementById('chat-container').style.display = 'block';
-        document.getElementById('users-list').style.marginTop = '0'; // Adjust margin
-        initializeChat();
+      // --- Инициализация при загрузке страницы ---
+      document.addEventListener('DOMContentLoaded', () => {
+          if (!username || !avatar) {
+              showLogin();
+          } else {
+              showChat();
+              initializeChat();
+          }
+      });
+
+      function showLogin() {
+          hideElement('chat-container');
+          hideElement('users-list');
+          showElement('username-form');
+          // Настройка превью для формы входа
+          document.getElementById('avatar').onchange = (event) => {
+              previewImage(event, 'avatar-preview'); // Используем ID превью
+          };
       }
+
+       function showChat() {
+           hideElement('username-form');
+           showElement('chat-container');
+           showElement('users-list'); // Показываем список пользователей вместе с чатом
+           document.getElementById('users-list').style.marginTop = '0'; // Убираем отступ у списка
+       }
+
+       // Хелперы для скрытия/показа элементов
+       function showElement(id) {
+           const el = document.getElementById(id);
+           if (el) el.style.display = 'flex'; // Используем flex для основных контейнеров
+            // Для модальных окон используем block или flex в зависимости от стилей
+           if (['username-form', 'profile-modal', 'call-modal', 'call-window', 'imageModal'].includes(id)) {
+                el.style.display = 'flex'; // Модалки тоже flex
+           }
+       }
+       function hideElement(id) {
+           const el = document.getElementById(id);
+           if (el) el.style.display = 'none';
+       }
+
 
       function initializeChat() {
           console.log("Initializing chat for user:", username);
-          updateMessageStyles();
+          updateMessageStyles(); // Применяем стили к статическим сообщениям (если они есть)
+          socket.connect(); // Убедимся, что сокет подключен
           socket.emit('user_active', { username: username, avatar: avatar });
-          socket.emit('get_users'); // Request initial user list
-          socket.emit('get_messages'); // Request message history
+          socket.emit('get_users');
+          socket.emit('get_messages'); // Запрашиваем историю сообщений
           requestNotificationPermission();
-          setupGlobalListeners(); // IMPORTANT: Setup listeners after user is known
+          setupGlobalListeners(); // Настраиваем глобальные обработчики сокета
+          // Устанавливаем периодический пинг активности
+          startActivityPing();
       }
 
+       let activityPingInterval;
+       function startActivityPing() {
+           clearInterval(activityPingInterval); // Очищаем предыдущий интервал, если есть
+           activityPingInterval = setInterval(() => {
+               if (socket.connected && username) {
+                   // console.log("Sending periodic user_active ping");
+                   socket.emit('user_active', { username: username, avatar: avatar });
+               }
+           }, 30000); // Пинг каждые 30 секунд
+       }
+
+
+      // --- Управление пользователем (Вход, Профиль) ---
       function setUsername() {
           const usernameInput = document.getElementById('username');
           const avatarInput = document.getElementById('avatar');
-          username = usernameInput.value.trim();
+          const potentialUsername = usernameInput.value.trim();
           const avatarFile = avatarInput.files[0];
 
-          if (username && avatarFile) {
+          if (potentialUsername && avatarFile) {
+              // Проверка имени пользователя (простой пример)
+               if (potentialUsername.length < 3 || potentialUsername.length > 15) {
+                    alert("Имя пользователя должно быть от 3 до 15 символов.");
+                    return;
+               }
+               if (!/^[a-zA-Z0-9а-яА-ЯёЁ_-]+$/.test(potentialUsername)) {
+                    alert("Имя пользователя может содержать только буквы, цифры, _ и -.");
+                    return;
+               }
+
+
               const formData = new FormData();
               formData.append('file', avatarFile);
 
+              // Индикация загрузки (опционально)
+              const saveBtn = document.getElementById('save-btn');
+              saveBtn.textContent = 'Загрузка...';
+              saveBtn.disabled = true;
+
               fetch('/upload', { method: 'POST', body: formData })
                   .then(response => {
-                      if (!response.ok) throw new Error('Upload failed');
+                      if (!response.ok) throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
                       return response.text();
                   })
                   .then(filename => {
-                      avatar = filename;
-                      localStorage.setItem('username', username);
-                      localStorage.setItem('avatar', avatar);
-                      document.getElementById('username-form').style.display = 'none';
-                      document.getElementById('chat-container').style.display = 'block';
-                      document.getElementById('users-list').style.marginTop = '0';
-                      initializeChat();
+                       username = potentialUsername; // Устанавливаем глобальное имя
+                       avatar = filename;
+                       localStorage.setItem('username', username);
+                       localStorage.setItem('avatar', avatar);
+                       showChat();
+                       initializeChat();
                   })
                   .catch(error => {
                       console.error('Error setting username/avatar:', error);
-                      alert('Ошибка загрузки аватара. Попробуйте снова.');
+                      alert(`Ошибка загрузки аватара: ${error.message}. Попробуйте снова.`);
+                  })
+                  .finally(() => {
+                       // Возвращаем кнопку в исходное состояние
+                       saveBtn.textContent = 'Войти в чат';
+                       saveBtn.disabled = false;
                   });
           } else {
               alert('Пожалуйста, введите имя и выберите аватар.');
           }
       }
 
-       function updateProfile() {
+      function updateProfile() {
+         // ... (код функции updateProfile остается таким же, как в предыдущем ответе) ...
           const newUsernameInput = document.getElementById('new-username');
           const newAvatarInput = document.getElementById('new-avatar');
           const newUsername = newUsernameInput.value.trim();
@@ -572,151 +823,197 @@
 
           let updateData = {};
           let needsReload = false;
+          const oldUsername = localStorage.getItem('username');
+
+           // Валидация нового имени, если оно введено
+           if (newUsername && newUsername !== oldUsername) {
+                if (newUsername.length < 3 || newUsername.length > 15) {
+                    alert("Новое имя пользователя должно быть от 3 до 15 символов.");
+                    return;
+                }
+                if (!/^[a-zA-Z0-9а-яА-ЯёЁ_-]+$/.test(newUsername)) {
+                    alert("Новое имя пользователя может содержать только буквы, цифры, _ и -.");
+                    return;
+                }
+                 updateData.username = newUsername;
+                 needsReload = true; // Имя изменилось - нужна перезагрузка
+           }
 
           const handleUpdate = (updatedAvatarFilename = null) => {
-              const oldUsername = localStorage.getItem('username');
-              if (newUsername && newUsername !== oldUsername) {
-                  updateData.username = newUsername;
-                  localStorage.setItem('username', newUsername);
-                  username = newUsername; // Update global variable
-                  needsReload = true; // Reload if username changes to update messages etc.
+              if (updateData.username) {
+                  localStorage.setItem('username', updateData.username);
+                  username = updateData.username; // Обновляем глобальную переменную
               }
-               if (updatedAvatarFilename) {
+              if (updatedAvatarFilename) {
                   updateData.avatar = updatedAvatarFilename;
                   localStorage.setItem('avatar', updatedAvatarFilename);
-                  avatar = updatedAvatarFilename; // Update global variable
-               }
+                  avatar = updatedAvatarFilename; // Обновляем глобальную переменную
+              }
 
-               if (Object.keys(updateData).length > 0) {
-                    socket.emit('user_active', { username: localStorage.getItem('username'), avatar: localStorage.getItem('avatar') }); // Update server immediately
-                    socket.emit('get_users'); // Refresh user list for everyone
+              if (Object.keys(updateData).length > 0) {
+                    console.log("Updating profile on server:", { username: username, avatar: avatar });
+                    socket.emit('user_active', { username: username, avatar: avatar }); // Отправляем обновленные данные
+                    // Обновление списка пользователей инициируется сервером после user_active
                     alert('Профиль обновлен!');
-                    document.getElementById('profile-modal').style.display = 'none';
-                    document.getElementById('new-username').value = ''; // Clear inputs
+                    hideElement('profile-modal');
+                    document.getElementById('new-username').value = ''; // Очищаем поля
                     document.getElementById('new-avatar').value = '';
                     document.getElementById('new-avatar-preview').style.display = 'none';
                     document.getElementById('new-avatar-preview').src = '#';
 
                     if (needsReload) {
-                        location.reload(); // Reload only if username changed
+                        console.log("Username changed, reloading page...");
+                        location.reload(); // Перезагружаем страницу для полного обновления
                     } else {
-                         updateMessageStyles(); // Update styles if only avatar changed
+                         // Если изменился только аватар, обновляем стили без перезагрузки
+                         updateMessageStyles();
+                         updateUsersList(); // Обновляем список, чтобы показать новый аватар
                     }
                 } else {
-                    document.getElementById('profile-modal').style.display = 'none'; // Just close if nothing changed
+                    hideElement('profile-modal'); // Просто закрываем, если нет изменений
                 }
           };
 
+          // Индикация загрузки (опционально)
+          const saveProfileBtn = document.getElementById('save-profile-btn');
+
+
           if (newAvatarFile) {
+               saveProfileBtn.textContent = 'Загрузка...';
+               saveProfileBtn.disabled = true;
               const formData = new FormData();
               formData.append('file', newAvatarFile);
               fetch('/upload', { method: 'POST', body: formData })
                   .then(response => {
-                       if (!response.ok) throw new Error('Upload failed');
+                       if (!response.ok) throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
                        return response.text();
                    })
                   .then(filename => handleUpdate(filename))
                   .catch(error => {
                       console.error('Error updating profile avatar:', error);
-                      alert('Ошибка загрузки нового аватара.');
+                      alert(`Ошибка загрузки нового аватара: ${error.message}.`);
+                  })
+                  .finally(() => {
+                       saveProfileBtn.textContent = 'Сохранить';
+                       saveProfileBtn.disabled = false;
                   });
           } else {
-              handleUpdate(); // Handle potential username change without avatar change
+              handleUpdate(); // Обновляем только имя, если нужно
           }
       }
 
-      // --- Message Handling ---
 
-       function replaceDenis(text) {
-            // Using a case-insensitive regex with word boundaries
-            return text.replace(/\b(денис|denis)\b/gi, 'ХУЕСОС'); // Consider user experience with automatic replacements
-       }
+      // --- Управление сообщениями ---
 
-      function renderMessage(msg) {
-        const chat = document.getElementById('chat');
-        const isScrolledToBottom = chat.scrollHeight - chat.clientHeight <= chat.scrollTop + 50; // Check if near bottom before adding message
+      function replaceDenis(text) {
+           return text.replace(/\b(денис|denis)\b/gi, 'ХУЕСОС');
+      }
 
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.dataset.id = msg.id;
-        div.dataset.username = msg.username;
+      function renderMessage(msg, prepend = false) {
+          const chat = document.getElementById('chat');
+          if (!chat) return; // Выходим, если чат не найден
 
-        const userAvatar = users[msg.username]?.avatar || 'default_avatar.png'; // Use saved user data or default
-        const avatarSrc = `/static/uploads/${userAvatar}`;
-        const defaultAvatarSrc = '/static/logo.png'; // Path to your default logo/avatar
+          // Проверяем, существует ли сообщение с таким ID уже в чате
+          if (document.querySelector(`.message[data-id="${msg.id}"]`)) {
+              console.warn(`Message with ID ${msg.id} already exists. Skipping render.`);
+              return;
+          }
 
-        const messageText = replaceDenis(msg.text || ""); // Ensure text is defined
+          const isScrolledToBottom = chat.scrollHeight - chat.clientHeight <= chat.scrollTop + 100; // Более мягкое условие
 
-        let imageHTML = '';
-        if (msg.image) {
-            const imageSrc = `/static/uploads/${msg.image}`;
-            imageHTML = `<img src="${imageSrc}" class="content-img" onclick="openImageModal('${imageSrc}')" alt="Изображение пользователя ${msg.username}">`;
-        }
+          const div = document.createElement('div');
+          div.className = 'message';
+          div.dataset.id = msg.id;
+          div.dataset.username = msg.username;
 
-        let deleteButtonHTML = '';
-        // Check against the *current* user logged in
-        if (msg.username === username) {
-            deleteButtonHTML = `<button class="delete-btn" onclick="deleteMessage('${msg.id}')" title="Удалить">🗑️</button>`;
-        }
+          // Получаем аватар из кэша users или используем дефолтный
+          const userAvatarFilename = users[msg.username]?.avatar || null;
+          const avatarSrc = userAvatarFilename ? `/static/uploads/${userAvatarFilename}` : '/static/logo.png'; // Используем logo.png как дефолтный
+          const defaultAvatarOnError = '/static/logo.png'; // Путь к дефолтному аватару на случай ошибки загрузки
 
-        div.innerHTML = `
-            <img src="${avatarSrc}" class="avatar" alt="${msg.username}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarSrc}';">
-            <div class="message-content-wrapper">
-                 <span class="username">${msg.username}:</span>
-                 <span class="message-text">${messageText}</span>
-                 ${imageHTML}
-            </div>
-            ${deleteButtonHTML}
-        `;
+          const messageText = replaceDenis(msg.text || ""); // Заменяем Дениса
 
-        chat.appendChild(div);
-        updateSingleMessageStyle(div); // Apply style just to the new message
+          let imageHTML = '';
+          if (msg.image) {
+              const imageSrc = `/static/uploads/${msg.image}`;
+              // Добавлена проверка alt для доступности
+              imageHTML = `<img src="${imageSrc}" class="content-img" onclick="openImageModal('${imageSrc}')" alt="Изображение от ${msg.username || 'пользователя'}">`;
+          }
 
-         // Auto-scroll only if the user was already at the bottom
-         if (isScrolledToBottom) {
-            chat.scrollTop = chat.scrollHeight;
-         }
+          let deleteButtonHTML = '';
+          // Кнопка удаления только для своих сообщений
+          if (msg.username === username) {
+              deleteButtonHTML = `<button class="delete-btn" onclick="deleteMessage('${msg.id}')" title="Удалить">🗑️</button>`;
+          }
+
+          div.innerHTML = `
+              <img src="${avatarSrc}" class="avatar" alt="${msg.username}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarOnError}';">
+              <div class="message-content-wrapper">
+                   <span class="username">${msg.username || 'Аноним'}:</span>
+                   <span class="message-text">${messageText}</span>
+                   ${imageHTML}
+              </div>
+              ${deleteButtonHTML}
+          `;
+
+           if (prepend) {
+               chat.insertBefore(div, chat.firstChild); // Добавляем в начало для истории
+           } else {
+               chat.appendChild(div); // Добавляем в конец для новых сообщений
+           }
+
+          updateSingleMessageStyle(div); // Применяем стиль к конкретному сообщению
+
+           // Авто-скролл только если добавляем новое сообщение и были внизу
+           if (!prepend && isScrolledToBottom) {
+              chat.scrollTop = chat.scrollHeight;
+           }
       }
 
       function sendMessage() {
-        const input = document.getElementById('message');
-        const fileInput = document.getElementById('file-input');
-        const text = input.value.trim();
-        const file = fileInput.files[0];
+          const input = document.getElementById('message');
+          const fileInput = document.getElementById('file-input');
+          const text = input.value.trim();
+          const file = fileInput.files[0];
 
-        if ((text || file) && username) {
-            const sendMessageData = (imageData = null) => {
-                socket.emit('send_message', {
-                    message: text,
-                    username: username,
-                    image: imageData // Send filename if image exists
-                });
-                input.value = ''; // Clear text input
-                fileInput.value = ''; // Clear file input
-                clearMessagePreview(); // Clear preview
-                // No need to emit user_active here, it's done periodically and on connect/profile update
-            };
+          if ((text || file) && username) {
+              const sendMessageData = (imageData = null) => {
+                  console.log(`Sending message: Text='${text}', Image='${imageData}'`);
+                  socket.emit('send_message', {
+                      message: text,
+                      username: username,
+                      image: imageData
+                  });
+                  input.value = ''; // Очищаем поле ввода
+                  fileInput.value = ''; // Очищаем поле файла
+                  clearMessagePreview(); // Очищаем превью
+              };
 
-            if (file) {
-                // Upload image first, then send message with image filename
-                const formData = new FormData();
-                formData.append('file', file);
-                fetch('/upload', { method: 'POST', body: formData })
-                    .then(response => {
-                         if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-                         return response.text();
-                     })
-                    .then(filename => sendMessageData(filename))
-                    .catch(error => {
-                        console.error('Error uploading image:', error);
-                        alert('Ошибка загрузки изображения.');
-                        clearMessagePreview();
-                    });
-            } else {
-                // Send text message directly
-                sendMessageData();
-            }
-        }
+              if (file) {
+                   // Индикация загрузки файла (опционально)
+                   const sendBtn = document.getElementById('send-btn');
+                   sendBtn.disabled = true; // Блокируем кнопку на время загрузки
+
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  fetch('/upload', { method: 'POST', body: formData })
+                      .then(response => {
+                           if (!response.ok) throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+                           return response.text();
+                       })
+                      .then(filename => sendMessageData(filename))
+                      .catch(error => {
+                          console.error('Error uploading image:', error);
+                          alert(`Ошибка загрузки изображения: ${error.message}.`);
+                          clearMessagePreview(); // Очищаем превью при ошибке
+                      })
+                      .finally(() => {
+                           sendBtn.disabled = false; // Разблокируем кнопку
+                      });
+              } else {
+                  sendMessageData(); // Отправляем текстовое сообщение
+              }
+          }
       }
 
        function deleteMessage(id) {
@@ -727,676 +1024,833 @@
        }
 
 
-      // --- UI Updates & Helpers ---
+      // --- Обновление UI и Хелперы ---
 
-       function updateMessageStyles() {
-        const messages = document.querySelectorAll('.message');
-        messages.forEach(msg => updateSingleMessageStyle(msg));
-        // Scroll to bottom after initial load or full update
-        const chat = document.getElementById('chat');
-        chat.scrollTop = chat.scrollHeight;
+      function updateMessageStyles() {
+          const messages = document.querySelectorAll('.message');
+          messages.forEach(msg => updateSingleMessageStyle(msg));
+          // Скролл вниз после полного обновления (например, при загрузке истории)
+          const chat = document.getElementById('chat');
+          if(chat) chat.scrollTop = chat.scrollHeight;
       }
 
-       function updateSingleMessageStyle(msgElement) {
+      function updateSingleMessageStyle(msgElement) {
+            if (!msgElement || !msgElement.dataset) return;
             const msgUsername = msgElement.dataset.username;
-            msgElement.classList.toggle('my-message', msgUsername === username);
-            msgElement.classList.toggle('other-message', msgUsername !== username);
-            // Ensure delete button visibility is correct based on updated username if needed
+            const isMy = msgUsername === username;
+            msgElement.classList.toggle('my-message', isMy);
+            msgElement.classList.toggle('other-message', !isMy);
+
             const deleteBtn = msgElement.querySelector('.delete-btn');
             if(deleteBtn){
-                deleteBtn.style.display = (msgUsername === username) ? '' : 'none'; // Re-evaluate visibility
+                deleteBtn.style.display = isMy ? '' : 'none'; // Показываем/скрываем кнопку удаления
             }
-       }
-
+             // Обновляем видимость аватара (на всякий случай, если стили изменились)
+             const avatarImg = msgElement.querySelector('.avatar');
+             if (avatarImg) {
+                 const userAvatarFilename = users[msgUsername]?.avatar || null;
+                 avatarImg.src = userAvatarFilename ? `/static/uploads/${userAvatarFilename}` : '/static/logo.png';
+             }
+      }
 
       function updateUsersList() {
-          console.log("Updating users list with data:", users);
+          console.log("Updating users list display with data:", users);
           const usersContent = document.getElementById('users-content');
-          usersContent.innerHTML = ''; // Clear current list
+           if (!usersContent) return;
+          usersContent.innerHTML = ''; // Очищаем список
 
-          // Get current time to calculate 'online' status more accurately
           const now = new Date();
-          const onlineThreshold = 20 * 1000; // 20 seconds threshold for 'online'
+          const onlineThreshold = 60 * 1000; // 1 минута для статуса "онлайн"
 
+          let hasOtherUsers = false;
           Object.entries(users).forEach(([user, info]) => {
-              if (user === username) return; // Don't list self
+              if (user === username) return; // Не показываем себя в списке
+              hasOtherUsers = true;
 
               const div = document.createElement('div');
               div.className = 'user-item';
+              div.id = `user-${user}`; // Добавляем ID для возможного обновления
 
-              const avatarSrc = info.avatar ? `/static/uploads/${info.avatar}` : '/static/logo.png';
-              const defaultAvatarSrc = '/static/logo.png';
+              const avatarFilename = info.avatar || null;
+              const avatarSrc = avatarFilename ? `/static/uploads/${avatarFilename}` : '/static/logo.png';
+              const defaultAvatarOnError = '/static/logo.png';
 
               let statusText = 'Офлайн';
-              let statusClass = 'offline'; // You can add CSS for this class
+              let statusClass = 'offline';
 
               if (info.last_seen) {
                     try {
-                       const lastSeenDate = new Date(info.last_seen); // Parse ISO string
-                       const timeDiff = now - lastSeenDate;
+                       const lastSeenDate = new Date(info.last_seen);
+                       const timeDiff = now.getTime() - lastSeenDate.getTime();
 
-                       if (timeDiff < onlineThreshold) {
+                       if (!isNaN(timeDiff) && timeDiff < onlineThreshold) {
                            statusText = 'Онлайн';
                            statusClass = 'online';
-                       } else {
-                           // Format last seen time nicely
+                       } else if (!isNaN(lastSeenDate.getTime())) {
+                           // Форматируем дату/время последнего визита
                            statusText = `Был(а) ${lastSeenDate.toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}`;
-                           statusClass = 'offline';
+                       } else {
+                            statusText = "Статус неизвестен"; // Если дата невалидна
                        }
                     } catch (e) {
                         console.error("Error parsing date for user", user, info.last_seen, e);
-                        statusText = "Статус неизвестен"; // Fallback for invalid date
+                        statusText = "Статус неизвестен";
                     }
               } else {
-                    statusText = "Статус неизвестен"; // Fallback if no last_seen
+                    statusText = "Статус неизвестен"; // Если нет last_seen
               }
 
+              // Кнопка звонка только если пользователь онлайн
+              const callButtonHTML = statusClass === 'online'
+                  ? `<button class="call-user-btn" onclick="callUser('${user}')" title="Позвонить ${user}">📞</button>`
+                  : '';
 
               div.innerHTML = `
-                  <img src="${avatarSrc}" class="avatar ${statusClass}" alt="${user}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarSrc}';">
-                  <div>
-                      <span>${user}</span>
+                  <img src="${avatarSrc}" class="avatar ${statusClass}" alt="${user}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarOnError}';">
+                  <div class="user-info">
+                      <span class="username-in-list">${user}</span>
                       <span class="last-seen ${statusClass}">${statusText}</span>
                   </div>
-                  ${statusClass === 'online' ? `<button class="call-user-btn" onclick="callUser('${user}')" title="Позвонить ${user}">📞</button>` : ''}
-              `; // Only show call button if user is 'online'
+                  ${callButtonHTML}
+              `;
 
               usersContent.appendChild(div);
           });
+
+           // Показываем сообщение, если других пользователей нет
+           if (!hasOtherUsers) {
+                usersContent.innerHTML = '<p style="text-align: center; color: #7b1fa2; padding: 20px 0; font-style: italic;">Других пользователей нет онлайн</p>';
+           }
       }
 
       function addEmoji(emoji) {
-        document.getElementById('message').value += emoji;
-        document.getElementById('emoji-picker').style.display = 'none';
-        document.getElementById('message').focus(); // Focus back on input
+          const messageInput = document.getElementById('message');
+          messageInput.value += emoji;
+          hideElement('emoji-picker');
+          messageInput.focus();
       }
 
-       // Preview image before sending
-       function previewImage(event, containerId) {
-           const reader = new FileReader();
-           const previewContainer = document.getElementById(containerId);
-           const previewImage = previewContainer.querySelector('img'); // Assumes img is direct child or use specific ID
+      // Превью изображения перед отправкой/сменой аватара
+      function previewImage(event, previewElementId) {
+          const previewElement = document.getElementById(previewElementId);
+           if (!previewElement) return;
+          const input = event.target;
+          const file = input.files ? input.files[0] : null;
 
-           reader.onload = function(){
-               if (previewImage) {
-                 previewImage.src = reader.result;
-                 previewContainer.style.display = 'block';
+          if (file && file.type.startsWith('image/')) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                  previewElement.src = e.target.result;
+                  previewElement.style.display = 'block'; // Показываем превью
+                   // Показываем контейнер для превью сообщения (если это он)
+                   if (previewElementId === 'message-preview') {
+                        showElement('message-preview-container');
+                   }
+              }
+              reader.readAsDataURL(file);
+          } else {
+               // Сбрасываем, если файл не выбран или не картинка
+              previewElement.src = '#';
+              previewElement.style.display = 'none';
+               if (previewElementId === 'message-preview') {
+                    hideElement('message-preview-container');
                }
-           }
-           if(event.target.files[0]){
-                reader.readAsDataURL(event.target.files[0]);
-           } else {
-                previewImage.src = '#';
-                previewContainer.style.display = 'none';
-           }
-       }
+               // Очищаем input type="file", если пользователь отменил выбор
+               input.value = '';
+          }
+      }
 
+
+       // Очистка превью сообщения
        function clearMessagePreview() {
           const previewContainer = document.getElementById('message-preview-container');
           const previewImage = document.getElementById('message-preview');
           const fileInput = document.getElementById('file-input');
-          previewImage.src = '#';
-          previewContainer.style.display = 'none';
-          fileInput.value = ''; // Important: clear the file input as well
+           if(previewImage) previewImage.src = '#';
+           if(previewContainer) previewContainer.style.display = 'none';
+           if(fileInput) fileInput.value = ''; // Важно очистить поле файла
        }
 
-        // Add preview for profile avatar change
+        // Настройка превью для смены аватара в профиле
         document.getElementById('new-avatar').onchange = (event) => previewImage(event, 'new-avatar-preview');
 
 
       function requestNotificationPermission() {
-        if (!('Notification' in window)) {
-          console.log('Уведомления не поддерживаются в этом браузере');
-          return;
-        }
-        if (Notification.permission === 'default') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Разрешение на уведомления получено');
-                    new Notification('Huiber Уведомления', {
-                        body: 'Уведомления включены!',
-                        icon: '/static/logo.png'
-                    });
-                } else {
-                    console.log('Разрешение на уведомления отклонено');
-                }
-            }).catch(err => {
-                console.error('Ошибка запроса разрешения:', err);
-            });
-        }
+         // ... (код функции requestNotificationPermission остается таким же) ...
+          if (!('Notification' in window)) {
+            console.log('Уведомления не поддерживаются в этом браузере');
+            return;
+          }
+          if (Notification.permission === 'default') {
+              Notification.requestPermission().then(permission => {
+                  if (permission === 'granted') {
+                      console.log('Разрешение на уведомления получено');
+                      new Notification('Huiber Уведомления', {
+                          body: 'Уведомления включены!',
+                          icon: '/static/logo.png',
+                          tag: 'huiber-permission' // Тэг, чтобы не дублировать
+                      });
+                  } else {
+                      console.log('Разрешение на уведомления отклонено');
+                  }
+              }).catch(err => {
+                  console.error('Ошибка запроса разрешения:', err);
+              });
+          }
       }
 
        function showNotification(title, body, icon) {
-           if ('Notification' in window && Notification.permission === 'granted') {
-               // Use a tag to prevent multiple notifications for the same event if window is hidden
-               const notification = new Notification(title, { body: body, icon: icon || '/static/logo.png', tag: 'huiber-message' });
-                // Optional: Close notification after a few seconds
-               // setTimeout(notification.close.bind(notification), 5000);
-           }
+           // ... (код функции showNotification остается таким же) ...
+            if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+                 // Используем tag, чтобы уведомления заменяли друг друга, а не накапливались
+                 const notification = new Notification(title, { body: body, icon: icon || '/static/logo.png', tag: 'huiber-message' });
+                  // Можно добавить автозакрытие
+                  setTimeout(notification.close.bind(notification), 7000); // Закрыть через 7 секунд
+            }
        }
 
-        // --- Image Modal Functions ---
+        // --- Функции Модального Окна Изображения ---
        function openImageModal(src) {
-         document.getElementById('modalImage').src = src;
-         document.getElementById('imageModal').style.display = 'block';
+           const modal = document.getElementById('imageModal');
+           const modalImg = document.getElementById('modalImage');
+            if (modal && modalImg) {
+               modalImg.src = src;
+               showElement('imageModal'); // Используем flex для показа
+            }
        }
 
-       function closeImageModal() {
-         document.getElementById('imageModal').style.display = 'none';
-         document.getElementById('modalImage').src = ''; // Clear src
+       function closeImageModal(event) {
+            // Проверяем, был ли клик непосредственно на фоне (а не на картинке)
+            // или на кнопке закрытия
+            if (!event || event.target.id === 'imageModal' || event.target.classList.contains('close-modal-btn')) {
+               const modal = document.getElementById('imageModal');
+               const modalImg = document.getElementById('modalImage');
+                if (modal && modalImg) {
+                   hideElement('imageModal');
+                   modalImg.src = ''; // Очищаем src для экономии памяти
+                }
+                 // Предотвращаем всплытие, если клик был на кнопке
+                 if (event) event.stopPropagation();
+            }
        }
 
 
-      // --- WebRTC Call Logic ---
+      // --- Логика WebRTC Звонков (с улучшенным логированием) ---
 
       function createPeerConnection() {
-         try {
-             console.log("Creating PeerConnection with config:", configuration);
-             peerConnection = new RTCPeerConnection(configuration);
+          try {
+               // Закрываем существующее соединение, если оно есть
+               if (peerConnection) {
+                   console.warn("Closing existing peer connection before creating a new one.");
+                   cleanUpCall(); // Используем общую функцию очистки
+               }
 
-             // Handle ICE Candidates
-             peerConnection.onicecandidate = event => {
-                 if (event.candidate && currentTarget) {
-                     console.log("Sending ICE candidate to:", currentTarget);
-                     socket.emit('ice_candidate', {
-                         target: currentTarget,
-                         candidate: event.candidate,
-                         sender: username // Let the server know who sent it
-                     });
-                 }
-             };
+              console.log("[Peer] Creating PeerConnection with config:", configuration);
+              peerConnection = new RTCPeerConnection(configuration);
 
-             // Handle incoming tracks (remote audio)
-             peerConnection.ontrack = event => {
-                 console.log("Track received:", event.track, event.streams);
-                 if (event.streams && event.streams[0]) {
-                      console.log("Setting remote audio srcObject");
-                      remoteAudio.srcObject = event.streams[0];
-                      remoteAudio.play().catch(e => console.error("Audio play failed:", e)); // Attempt to play
-                      document.getElementById('call-participants').textContent = `В разговоре с: ${currentTarget}`;
-                      document.getElementById('connecting-indicator').style.display = 'none'; // Hide spinner
-                 } else {
-                     // Fallback if stream structure is different (less common now)
-                     // let inboundStream = new MediaStream();
-                     // inboundStream.addTrack(event.track);
-                     // remoteAudio.srcObject = inboundStream;
-                 }
-             };
+              // --- Обработчики событий PeerConnection ---
 
-              // Optional: Monitor connection state
-              peerConnection.oniceconnectionstatechange = () => {
-                  console.log("ICE Connection State:", peerConnection.iceConnectionState);
-                  const indicator = document.getElementById('connecting-indicator');
-                  const participantsText = document.getElementById('call-participants');
-                  switch(peerConnection.iceConnectionState) {
-                      case "checking":
-                          indicator.style.display = 'block';
-                          participantsText.textContent = `Соединение с ${currentTarget}...`;
-                          break;
-                      case "connected":
-                      case "completed":
-                          indicator.style.display = 'none';
-                           if (remoteAudio.srcObject) { // Check if track was received
-                               participantsText.textContent = `В разговоре с: ${currentTarget}`;
-                           } else {
-                                // This might happen if connection establishes but track hasn't arrived yet
-                                console.log("Connected but no remote track yet.");
-                           }
-                          break;
-                      case "disconnected":
-                      case "failed":
-                      case "closed":
-                          indicator.style.display = 'none';
-                          participantsText.textContent = `Звонок завершен или прерван`;
-                          endCall(); // Clean up if connection drops unexpectedly
-                          break;
-                      default:
-                           indicator.style.display = 'none';
-                          break;
+              // Кандидаты ICE
+              peerConnection.onicecandidate = event => {
+                  if (event.candidate && currentTarget && username) { // Доп. проверка username
+                      console.log(`[Peer] Sending ICE candidate for ${currentTarget}:`, event.candidate.type, event.candidate.sdpMLineIndex);
+                      socket.emit('ice_candidate', {
+                          target: currentTarget,
+                          candidate: event.candidate,
+                          sender: username
+                      });
+                  } else if (!event.candidate) {
+                      console.log("[Peer] All ICE candidates gathered.");
+                  } else {
+                       console.warn("[Peer] Not sending ICE candidate (no target/username or empty candidate).");
                   }
               };
 
+              // Входящий медиа-трек
+              peerConnection.ontrack = event => {
+                  console.log("[Peer] Track received:", event.track.kind, "Stream:", event.streams[0]?.id);
+                  const remoteAudio = document.getElementById('remote-audio');
+                  if (remoteAudio && event.streams && event.streams[0]) {
+                      console.log("[Peer] Attaching remote stream to audio element.");
+                       // Важно: Не устанавливать srcObject повторно, если он уже есть
+                       if (remoteAudio.srcObject !== event.streams[0]) {
+                           remoteAudio.srcObject = event.streams[0];
+                       } else {
+                           console.log("[Peer] Remote stream already attached.");
+                       }
 
-             return peerConnection;
-         } catch (error) {
-             console.error("Error creating PeerConnection:", error);
-             alert("Не удалось инициализировать звонок. Проверьте разрешения браузера.");
-             return null;
-         }
+                       // Попытка воспроизведения
+                       console.log("[Peer] Attempting to play remote audio...");
+                       remoteAudio.play().then(() => {
+                           console.log("[Peer] Remote audio playback started successfully.");
+                           // Обновляем UI только при успехе
+                           document.getElementById('call-participants').textContent = `В разговоре с: ${currentTarget || '???'}`;
+                           document.getElementById('connecting-indicator').style.display = 'none';
+                       }).catch(e => {
+                           console.error("[Peer] ERROR playing remote audio:", e);
+                           document.getElementById('call-participants').textContent = `Разговор с ${currentTarget || '???'} (проблема со звуком)`;
+                           document.getElementById('connecting-indicator').style.display = 'none';
+                           // Можно показать кнопку "Play" пользователю
+                       });
+                  } else {
+                      console.error("[Peer] Failed to attach track: No remoteAudio element or stream available.");
+                  }
+              };
+
+              // Состояние ICE соединения
+              peerConnection.oniceconnectionstatechange = () => {
+                   if (!peerConnection) return; // Защита от срабатывания после закрытия
+                   console.log(`[Peer] >> ICE Connection State Changed: ${peerConnection.iceConnectionState}`);
+                   const indicator = document.getElementById('connecting-indicator');
+                   const participantsText = document.getElementById('call-participants');
+                   const targetName = currentTarget || "собеседник";
+
+                   switch(peerConnection.iceConnectionState) {
+                       case "new":
+                       case "checking":
+                           if (indicator) indicator.style.display = 'block';
+                           if (participantsText) participantsText.textContent = `Соединение с ${targetName}...`;
+                           break;
+                       case "connected": // Базовое соединение есть, ждем медиа
+                            if (indicator) indicator.style.display = 'none';
+                            console.log("[Peer] ICE connected. Waiting for media stream via 'ontrack'.");
+                            // Текст обновится в ontrack при получении медиа
+                           break;
+                       case "completed": // Обмен кандидатами завершен
+                            if (indicator) indicator.style.display = 'none';
+                            console.log("[Peer] ICE negotiation completed.");
+                            break;
+                       case "disconnected": // Может восстановиться
+                            if (indicator) indicator.style.display = 'none';
+                            if (participantsText) participantsText.textContent = `Соединение с ${targetName} прервано...`;
+                            console.warn("[Peer] ICE disconnected.");
+                            break;
+                       case "failed": // Не удалось подключиться
+                            if (indicator) indicator.style.display = 'none';
+                            if (participantsText) participantsText.textContent = `Не удалось соединиться с ${targetName}`;
+                            console.error("[Peer] ICE connection failed.");
+                            alert(`Не удалось установить соединение с ${targetName}. Проверьте консоль.`);
+                            endCall();
+                            break;
+                       case "closed": // Соединение закрыто
+                            if (indicator) indicator.style.display = 'none';
+                            if (participantsText) participantsText.textContent = `Звонок с ${targetName} завершен`;
+                            console.log("[Peer] ICE connection closed.");
+                            // Убедимся, что очистка прошла
+                            cleanUpCall();
+                            break;
+                       default:
+                            if (indicator) indicator.style.display = 'none';
+                           break;
+                   }
+              };
+
+               // Состояние сигнализации (offer/answer)
+               peerConnection.onsignalingstatechange = () => {
+                   if (!peerConnection) return;
+                   console.log(`[Peer] >> Signaling State Changed: ${peerConnection.signalingState}`);
+               };
+
+              return peerConnection;
+
+          } catch (error) {
+              console.error("[Peer] FATAL Error creating PeerConnection:", error);
+              alert("Критическая ошибка при инициализации звонка. Обновите страницу или проверьте браузер.");
+              return null;
+          }
       }
 
        async function startLocalMedia() {
-         try {
-             // Request only audio
-             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-             console.log("Local media stream obtained:", localStream);
-             return localStream;
-         } catch (error) {
-             console.error("Error getting user media:", error);
-             alert("Не удалось получить доступ к микрофону. Проверьте разрешения браузера.");
-             return null;
-         }
-      }
+           console.log("[Media] Requesting user media (audio only)...");
+           try {
+               localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+               console.log("[Media] Local media stream obtained successfully:", localStream.id);
+               return localStream;
+           } catch (error) {
+               console.error("[Media] ERROR getting user media:", error.name, error.message);
+               if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                   alert("Доступ к микрофону запрещен. Пожалуйста, разрешите доступ в настройках браузера.");
+               } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                   alert("Микрофон не найден. Убедитесь, что он подключен и работает.");
+               } else {
+                    alert(`Не удалось получить доступ к микрофону: ${error.message}`);
+               }
+               return null;
+           }
+       }
 
 
       async function callUser(targetUsername) {
-          if (!username) {
-            alert("Сначала войдите в систему.");
-            return;
-          }
-          if (currentTarget) {
-              alert("Вы уже участвуете в звонке или звоните.");
-              return;
-          }
-          console.log(`Attempting to call user: ${targetUsername}`);
+           console.log(`[CallFlow] Attempting callUser(${targetUsername}) by ${username}`);
+          if (!username) return alert("Сначала войдите в систему.");
+          if (currentTarget) return alert("Вы уже участвуете в звонке или звоните.");
+
           currentTarget = targetUsername;
 
           localStream = await startLocalMedia();
-          if (!localStream) return; // Exit if mic access failed
+          if (!localStream) { currentTarget = null; return; } // Выход, если микрофон не доступен
 
           peerConnection = createPeerConnection();
-          if (!peerConnection) return; // Exit if PC creation failed
+          if (!peerConnection) { cleanUpCall(); return; } // Выход, если PC не создан
 
-          // Add local audio track to the connection
-          localStream.getTracks().forEach(track => {
-             try {
-                 peerConnection.addTrack(track, localStream);
-                 console.log("Local track added:", track);
-             } catch (e) {
-                 console.error("Error adding track:", e);
-             }
-          });
+           // Добавляем локальные треки
+           console.log("[CallFlow:Caller] Adding local tracks...");
+           localStream.getTracks().forEach(track => {
+              try {
+                  peerConnection.addTrack(track, localStream);
+                  console.log(`[CallFlow:Caller] Local track added: ${track.kind} (${track.id})`);
+              } catch (e) {
+                  console.error("[CallFlow:Caller] ERROR adding track:", e);
+              }
+           });
 
-           // Show call window immediately for the caller
+           // Показываем UI звонка для инициатора
            document.getElementById('call-participants').textContent = `Звонок пользователю ${currentTarget}...`;
            document.getElementById('connecting-indicator').style.display = 'block';
-           document.getElementById('call-window').style.display = 'block';
+           showElement('call-window');
 
           try {
-                // Create Offer
-                console.log("Creating offer...");
+                console.log(`[CallFlow:Caller] Creating offer for ${currentTarget}`);
                 const offer = await peerConnection.createOffer();
-                console.log("Offer created, setting local description.");
-                await peerConnection.setLocalDescription(offer);
-                console.log("Local description set. Emitting offer to target.");
+                console.log(`[CallFlow:Caller] Offer created. Setting local description.`);
 
-                // Send offer to the target user via the server
-                socket.emit('offer', {
-                    offer: offer,
-                    target: currentTarget,
-                    caller: username
-                });
+                 // Установка локального описания
+                 try {
+                     await peerConnection.setLocalDescription(offer);
+                     console.log(`[CallFlow:Caller] Local description (offer) set. Emitting offer to server.`);
+                     // Отправка оффера через сервер
+                     socket.emit('offer', {
+                         offer: peerConnection.localDescription, // Отправляем полное описание
+                         target: currentTarget,
+                         caller: username
+                     });
+                 } catch (e) {
+                      console.error(`[CallFlow:Caller] ERROR setting local description (offer):`, e);
+                      alert(`Ошибка установки локального описания: ${e.message}`);
+                      endCall();
+                 }
           } catch (error) {
-                console.error("Error creating/sending offer:", error);
-                alert("Не удалось начать звонок.");
-                endCall(); // Clean up on failure
+                console.error("[CallFlow:Caller] ERROR creating offer:", error);
+                alert(`Не удалось создать предложение для звонка: ${error.message}`);
+                endCall();
           }
       }
 
-       // Accept an incoming call
       async function acceptCall() {
-          console.log("Accepting call from:", currentTarget);
+          console.log(`[CallFlow:Callee] Attempting acceptCall() from ${currentTarget} by ${username}`);
           if (!currentTarget || !receivedOffer) {
-              console.error("Cannot accept call: Missing target or offer.");
-              rejectCall(); // Clean up inconsistent state
+              console.error("[CallFlow:Callee] Cannot accept call: Missing target or received offer.");
+              rejectCall(); // Отклоняем, если нет нужных данных
               return;
           }
 
-          document.getElementById('call-modal').style.display = 'none';
-          ringtone.pause();
-          ringtone.currentTime = 0;
+           hideElement('call-modal');
+           ringtone.pause();
+           ringtone.currentTime = 0;
 
           localStream = await startLocalMedia();
-          if (!localStream) {
-              rejectCall(); // Can't accept without mic
-              return;
-          }
+          if (!localStream) { rejectCall(); return; } // Отклоняем, если нет микрофона
 
           peerConnection = createPeerConnection();
-          if (!peerConnection) {
-              rejectCall(); // Can't accept if PC fails
-              return;
-          }
+          if (!peerConnection) { rejectCall(); return; } // Отклоняем, если не создался PC
 
 
-           // Add local tracks BEFORE setting remote description/creating answer
+           // Показываем UI звонка для принимающего
+           document.getElementById('call-participants').textContent = `Соединение с ${currentTarget}...`;
+           document.getElementById('connecting-indicator').style.display = 'block';
+           showElement('call-window');
+
+
+           // Добавляем локальные треки ПЕРЕД установкой remote description
+           console.log("[CallFlow:Callee] Adding local tracks...");
            localStream.getTracks().forEach(track => {
                try {
                    peerConnection.addTrack(track, localStream);
-                   console.log("Local track added (callee):", track);
+                   console.log(`[CallFlow:Callee] Local track added: ${track.kind} (${track.id})`);
                } catch (e) {
-                   console.error("Error adding track (callee):", e);
+                   console.error("[CallFlow:Callee] ERROR adding track:", e);
                }
            });
 
-
-           // Show call window
-           document.getElementById('call-participants').textContent = `Соединение с ${currentTarget}...`;
-           document.getElementById('connecting-indicator').style.display = 'block';
-           document.getElementById('call-window').style.display = 'block';
-
-
           try {
-              console.log("Setting remote description with received offer.");
-              await peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer));
-              console.log("Remote description set. Creating answer.");
+              console.log(`[CallFlow:Callee] Setting remote description (offer) from ${currentTarget}`);
+              await peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer)); // Используем сохраненный оффер
+              console.log(`[CallFlow:Callee] Remote description (offer) set. Creating answer.`);
+              receivedOffer = null; // Очищаем сохраненный оффер
 
               const answer = await peerConnection.createAnswer();
-              console.log("Answer created. Setting local description.");
-              await peerConnection.setLocalDescription(answer);
-              console.log("Local description set. Emitting answer.");
+              console.log(`[CallFlow:Callee] Answer created. Setting local description (answer).`);
 
-              // Send the answer back to the caller
-              socket.emit('answer', {
-                  answer: answer,
-                  target: currentTarget, // The original caller is the target for the answer
-                  caller: username      // We are the caller in the context of sending the answer
-              });
-
-              receivedOffer = null; // Clear the stored offer
+               // Установка локального описания (ответа)
+               try {
+                   await peerConnection.setLocalDescription(answer);
+                   console.log(`[CallFlow:Callee] Local description (answer) set. Emitting answer to server for ${currentTarget}.`);
+                   // Отправка ответа через сервер
+                   socket.emit('answer', {
+                       answer: peerConnection.localDescription, // Отправляем полное описание
+                       target: currentTarget, // Кому предназначен ответ (инициатору звонка)
+                       caller: username      // Кто отправляет ответ (мы)
+                   });
+               } catch(e) {
+                   console.error(`[CallFlow:Callee] ERROR setting local description (answer):`, e);
+                   alert(`Ошибка установки локального описания (ответа): ${e.message}`);
+                   endCall();
+               }
 
           } catch (error) {
-              console.error("Error processing offer/creating answer:", error);
-              alert("Не удалось подключиться к звонку.");
+              console.error("[CallFlow:Callee] ERROR processing offer or creating answer:", error);
+              alert(`Не удалось обработать звонок: ${error.message}`);
               endCall();
           }
       }
 
-       // Reject an incoming call
       function rejectCall() {
-          console.log("Rejecting call from:", currentTarget);
-          document.getElementById('call-modal').style.display = 'none';
-          ringtone.pause();
-          ringtone.currentTime = 0;
-          // Optionally notify the caller that the call was rejected (needs server logic)
-          // socket.emit('call_rejected', { target: currentTarget, caller: username });
-          cleanUpCall(); // Use the common cleanup function
-      }
-
-      // End an ongoing call (can be called by either party)
-      function endCall() {
-          console.log("Ending call with:", currentTarget);
-          // Notify the other user (optional, needs server support)
+          console.log(`[CallFlow] Rejecting call from ${currentTarget} by ${username}`);
+          // Опционально: уведомить звонящего об отклонении
           // if (currentTarget) {
-          //    socket.emit('call_ended', { target: currentTarget, sender: username });
+          //     socket.emit('call_rejected', { target: currentTarget, caller: username });
           // }
-          cleanUpCall();
+          cleanUpCall(); // Используем общую очистку
+          hideElement('call-modal'); // Убедимся, что модалка скрыта
+      }
+
+      function endCall() {
+          console.log(`[CallFlow] Ending call with ${currentTarget} initiated by ${username}`);
+          // Опционально: уведомить другого участника о завершении
+          // if (currentTarget) {
+          //     socket.emit('call_ended', { target: currentTarget, sender: username });
+          // }
+          cleanUpCall(); // Вызываем общую функцию очистки
       }
 
 
-       // Centralized cleanup function
       function cleanUpCall() {
-           console.log("Cleaning up call resources.");
+           console.log("[Cleanup] Starting call cleanup...");
            if (peerConnection) {
                peerConnection.onicecandidate = null;
                peerConnection.ontrack = null;
                peerConnection.oniceconnectionstatechange = null;
-               peerConnection.close();
-               peerConnection = null;
-               console.log("PeerConnection closed.");
+               peerConnection.onsignalingstatechange = null;
+               // Закрываем соединение, если оно не закрыто
+               if (peerConnection.signalingState !== 'closed') {
+                   peerConnection.close();
+                   console.log("[Cleanup] PeerConnection closed.");
+               }
+               peerConnection = null; // Убираем ссылку
+           } else {
+                console.log("[Cleanup] No active peer connection found.");
            }
+
            if (localStream) {
+               console.log("[Cleanup] Stopping local stream tracks...");
                localStream.getTracks().forEach(track => track.stop());
                localStream = null;
-               console.log("Local stream stopped.");
+           } else {
+                console.log("[Cleanup] No active local stream found.");
            }
-            if (remoteAudio.srcObject) {
-               remoteAudio.srcObject.getTracks().forEach(track => track.stop());
+
+           const remoteAudio = document.getElementById('remote-audio');
+            if (remoteAudio && remoteAudio.srcObject) {
+               console.log("[Cleanup] Stopping remote stream tracks and clearing srcObject...");
+               // remoteAudio.srcObject.getTracks().forEach(track => track.stop()); // Браузер должен делать это сам при srcObject = null
                remoteAudio.srcObject = null;
-                remoteAudio.pause();
-                console.log("Remote audio stopped and cleared.");
-           }
+               remoteAudio.pause();
+               remoteAudio.removeAttribute('src'); // На всякий случай
+               remoteAudio.load(); // Сброс состояния элемента
+            } else {
+                 console.log("[Cleanup] No active remote stream found on audio element.");
+            }
 
-           // Reset UI
-           document.getElementById('call-window').style.display = 'none';
-           document.getElementById('call-modal').style.display = 'none'; // Ensure incoming modal is also hidden
-           document.getElementById('connecting-indicator').style.display = 'none';
-           document.getElementById('call-participants').textContent = 'Соединение...'; // Reset text
+           // Сброс UI
+           hideElement('call-window');
+           hideElement('call-modal');
+           const indicator = document.getElementById('connecting-indicator');
+           const participantsText = document.getElementById('call-participants');
+           if(indicator) indicator.style.display = 'none';
+           if(participantsText) participantsText.textContent = 'Соединение...';
 
-
-           // Stop ringtone just in case
+           // Остановка рингтона
            ringtone.pause();
            ringtone.currentTime = 0;
 
-           // Reset state variables
+           // Сброс переменных состояния звонка
+           console.log(`[Cleanup] Resetting call state (currentTarget was: ${currentTarget})`);
            currentTarget = null;
            receivedOffer = null;
-           console.log("Call state reset.");
+           console.log("[Cleanup] Call cleanup finished.");
       }
 
-      // --- Global Socket.IO Event Listeners ---
+      // --- Глобальные обработчики событий Socket.IO ---
       function setupGlobalListeners() {
-          console.log("Setting up global Socket.IO listeners.");
+          console.log("[Socket] Setting up global Socket.IO listeners.");
 
-            // Load initial messages
+           // Убираем предыдущие обработчики, чтобы избежать дублирования при переподключении
+           socket.off('connect');
+           socket.off('disconnect');
+           socket.off('reconnect');
+           socket.off('connect_error');
+           socket.off('initial_messages');
+           socket.off('new_message');
+           socket.off('message_deleted');
+           socket.off('users_list');
+           socket.off('update_users');
+           socket.off('incoming_call');
+           socket.off('offer');
+           socket.off('answer');
+           socket.off('ice_candidate');
+           // socket.off('call_ended_by_peer'); // Если будете добавлять
+
+            socket.on('connect', () => {
+                console.log(`[Socket] Connected successfully with SID: ${socket.id}`);
+                // При подключении (или переподключении) снова регистрируем пользователя
+                if (username && avatar) {
+                     console.log("[Socket] Re-emitting user_active and getting data on connect.");
+                     socket.emit('user_active', { username: username, avatar: avatar });
+                     socket.emit('get_users');
+                     socket.emit('get_messages');
+                }
+            });
+
+            socket.on('disconnect', (reason) => {
+               console.warn(`[Socket] Disconnected: ${reason}`);
+               // Очищаем состояние звонка при дисконнекте
+               if (currentTarget) {
+                    console.warn("[Socket] Cleaning up call state due to disconnection.");
+                    cleanUpCall();
+                    alert("Соединение потеряно. Звонок завершен.");
+               }
+                // Можно показать индикатор потери соединения
+            });
+
+            socket.on('reconnect', (attemptNumber) => {
+                console.log(`[Socket] Reconnected after ${attemptNumber} attempts.`);
+                // User_active и get_data будут отправлены обработчиком 'connect'
+            });
+
+            socket.on('connect_error', (err) => {
+             console.error("[Socket] Connection error:", err.message);
+             // Очищаем состояние звонка при ошибке подключения
+              if (currentTarget) {
+                  console.warn("[Socket] Cleaning up call state due to connection error.");
+                  cleanUpCall();
+              }
+             alert("Не удается подключиться к серверу чата. Проверьте соединение.");
+           });
+
+
+            // Загрузка истории сообщений
            socket.on('initial_messages', function(loadedMessages) {
-                console.log("Received initial messages:", loadedMessages);
+                console.log(`[Socket] Received initial_messages (${loadedMessages.messages?.length || 0} messages)`);
                 const chat = document.getElementById('chat');
-                chat.innerHTML = ''; // Clear any existing static messages
-                users = loadedMessages.users || {}; // Load users data sent with messages
-                loadedMessages.messages.forEach(msg => renderMessage(msg));
-                updateMessageStyles(); // Apply styles and scroll
+                if (!chat) return;
+                chat.innerHTML = ''; // Очищаем чат перед загрузкой истории
+
+                if (loadedMessages.users) {
+                     console.log("[Socket] Updating users cache from initial_messages");
+                     users = loadedMessages.users; // Обновляем кэш пользователей
+                }
+
+                if (loadedMessages.messages && loadedMessages.messages.length > 0) {
+                    loadedMessages.messages.forEach(msg => renderMessage(msg)); // Отображаем каждое сообщение
+                } else {
+                     // Можно показать сообщение "Нет сообщений"
+                     chat.innerHTML = '<p style="text-align: center; color: #7b1fa2; padding: 50px 0; font-style: italic;">Пока нет сообщений...</p>';
+                }
+                updateMessageStyles(); // Применяем стили и скроллим вниз
             });
 
           socket.on('new_message', function(msg) {
-            console.log("New message received:", msg);
-            // Update users cache if the sender is new or updated (optional)
-             if (msg.username && msg.avatar && (!users[msg.username] || users[msg.username].avatar !== msg.avatar)) {
-                 users[msg.username] = { avatar: msg.avatar, last_seen: new Date().toISOString() }; // Update local cache
-                 // No need to call updateUsersList here unless you want the list to refresh instantly
-             }
-            renderMessage(msg);
-            // Show notification if window is not focused
-            if (msg.username !== username && document.hidden) {
+             console.log(`[Socket] Received new_message from ${msg.username} (ID: ${msg.id})`);
+             // Обновляем кэш пользователя, если инфо пришло с сообщением
+              if (msg.username && msg.avatar && (!users[msg.username] || users[msg.username].avatar !== msg.avatar)) {
+                  console.log(`[Socket] Updating user cache for ${msg.username} from new_message`);
+                  users[msg.username] = { ...(users[msg.username] || {}), avatar: msg.avatar, last_seen: new Date().toISOString() };
+              }
+             renderMessage(msg); // Добавляем в конец чата
+             // Показываем уведомление, если нужно
+             if (msg.username !== username) {
                  const avatarSrc = users[msg.username]?.avatar ? `/static/uploads/${users[msg.username].avatar}` : '/static/logo.png';
                  showNotification(
                      `Новое сообщение от ${msg.username}`,
                      replaceDenis(msg.text || (msg.image ? "[Изображение]" : "")),
                      avatarSrc
                  );
-            }
+             }
           });
 
           socket.on('message_deleted', function(data) {
-            console.log("Message deletion event:", data);
-            const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
-            if (msgElement) {
-              msgElement.remove();
-              console.log("Message element removed from DOM:", data.id);
-            } else {
-                 console.warn("Could not find message element to delete:", data.id);
-            }
+             console.log(`[Socket] Received message_deleted for ID: ${data.id}`);
+             const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
+             if (msgElement) {
+                 msgElement.remove();
+                 console.log(`[UI] Message element ${data.id} removed.`);
+             } else {
+                  console.warn(`[UI] Could not find message element ${data.id} to delete.`);
+             }
           });
 
-          // Update user list when server sends it
+          // Обновление списка пользователей (полное или частичное)
           socket.on('users_list', function(users_data) {
-            console.log("Received full users list:", users_data);
-            users = users_data; // Replace local cache with server's list
-            updateUsersList();
-            updateMessageStyles(); // Re-apply styles in case avatar changed
-          });
-
-          // Update user list on incremental updates
-          socket.on('update_users', function(users_data) {
-             console.log("Received incremental user update:", users_data);
-             users = users_data; // Update local cache
+             console.log("[Socket] Received users_list update.");
+             users = users_data || {}; // Обновляем локальный кэш
              updateUsersList();
-             updateMessageStyles(); // Re-apply styles if avatar changed
+             updateMessageStyles(); // Обновляем стили сообщений (на случай смены аватара)
           });
+           // Для обратной совместимости, если сервер шлет 'update_users'
+           socket.on('update_users', function(users_data) {
+               console.log("[Socket] Received 'update_users' (legacy?) update.");
+               users = users_data || {};
+               updateUsersList();
+               updateMessageStyles();
+           });
 
 
-          // --- WebRTC Signaling Listeners ---
+          // --- Обработчики сигнализации WebRTC ---
 
           socket.on('incoming_call', function(data) {
-            console.log("Incoming call event from:", data.caller);
+             console.log(`[Socket] Received incoming_call from: ${data.caller}`);
              if (currentTarget) {
-                console.warn("Ignoring incoming call while already in a call or calling.");
-                // Optionally notify the caller that you are busy
-                // socket.emit('user_busy', { target: data.caller, caller: username });
-                return;
+                 console.warn(`[Socket] Ignoring incoming call from ${data.caller} because already in call with ${currentTarget}.`);
+                 // Опционально: Уведомить звонящего, что вы заняты
+                 // socket.emit('user_busy', { target: data.caller, caller: username });
+                 return;
              }
-             // Offer is expected to arrive separately via the 'offer' event
-             currentTarget = data.caller;
-             document.getElementById('call-text').textContent = `Входящий звонок от ${currentTarget}`;
-             document.getElementById('call-modal').style.display = 'block';
-             ringtone.play().catch(e => console.warn("Ringtone play failed:", e)); // Play ringtone
+              // Ждем 'offer' событие отдельно
+              currentTarget = data.caller;
+              document.getElementById('call-text').textContent = `Входящий звонок от ${currentTarget}`;
+              showElement('call-modal');
+              ringtone.play().catch(e => console.warn("Ringtone play failed:", e));
           });
 
 
           socket.on('offer', async function(data) {
-              console.log("Offer received from:", data.sender);
-               // Only process if this offer is for the current incoming call attempt
-              if (data.sender === currentTarget) {
-                  console.log("Storing received offer.");
-                  receivedOffer = data.offer; // Store the offer to be used in acceptCall
-                  // Do not process the offer here yet, wait for user to click Accept.
-              } else {
-                  console.warn("Received offer from unexpected sender:", data.sender, "Expected:", currentTarget);
-              }
+               console.log(`[Socket:${username}] Received 'offer' event from ${data.sender}`);
+               // Обрабатываем только если это ожидаемый звонящий и мы не в звонке/не звоним сами
+               // (currentTarget устанавливается в incoming_call)
+               if (data.sender === currentTarget) {
+                   if (peerConnection && peerConnection.signalingState !== 'stable') {
+                        console.warn(`[Socket:${username}] Received offer while P.C. is not stable (${peerConnection.signalingState}). Ignoring.`);
+                        return; // Не обрабатываем новый оффер, если уже идет установка соединения
+                   }
+                   console.log(`[Socket:${username}] Storing received offer from ${data.sender}.`);
+                   receivedOffer = data.offer; // Сохраняем для acceptCall
+                   // Не создаем PeerConnection здесь, ждем нажатия Accept
+               } else {
+                    console.warn(`[Socket:${username}] Ignoring offer from unexpected sender: ${data.sender}. Expecting: ${currentTarget}`);
+               }
           });
 
 
           socket.on('answer', async function(data) {
-              console.log("Answer received from:", data.sender);
-              if (peerConnection && data.sender === currentTarget) {
-                  console.log("Setting remote description with received answer.");
-                  try {
-                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                     console.log("Remote description (answer) set successfully.");
-                  } catch (error) {
-                     console.error("Error setting remote description (answer):", error);
-                     endCall(); // Clean up on failure
-                  }
-              } else {
-                 console.warn("Received answer but no peerConnection or unexpected sender:", data.sender);
-              }
+               console.log(`[Socket:${username}] Received 'answer' event from ${data.sender}`);
+               // Проверяем, что есть активное соединение и ответ от ожидаемого пользователя
+               if (peerConnection && data.sender === currentTarget) {
+                   if (peerConnection.signalingState === 'have-local-offer') {
+                       console.log(`[Socket:${username}] Setting remote description (answer) from ${currentTarget}`);
+                       try {
+                           await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                           console.log(`[Socket:${username}] Remote description (answer) set successfully.`);
+                       } catch (error) {
+                           console.error(`[Socket:${username}] ERROR setting remote description (answer):`, error);
+                           alert(`Ошибка применения ответа от ${currentTarget}: ${error.message}`);
+                           endCall();
+                       }
+                   } else {
+                        console.warn(`[Socket:${username}] Received answer in unexpected signaling state: ${peerConnection.signalingState}. Ignoring.`);
+                   }
+               } else {
+                   console.warn(`[Socket:${username}] Ignoring answer: PC?(${!!peerConnection}) Sender?(${data.sender} vs ${currentTarget})`);
+               }
           });
 
 
           socket.on('ice_candidate', async function(data) {
-              console.log("ICE candidate received from:", data.sender);
-              if (peerConnection && data.sender === currentTarget && data.candidate) {
-                   console.log("Adding received ICE candidate.");
-                   try {
-                      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                      console.log("ICE candidate added successfully.");
-                  } catch (error) {
-                      // It's somewhat common to get errors here during negotiation, often ignorable
-                      console.warn("Error adding received ICE candidate:", error);
-                  }
-              } else {
-                 console.warn("Received ICE candidate but no peerConnection/target mismatch/no candidate:", data.sender, !!peerConnection, !!data.candidate);
-              }
+               // console.log(`[Socket:${username}] Received 'ice_candidate' event from ${data.sender}`); // Очень много логов, можно закомментировать
+               // Добавляем кандидата только если есть соединение, оно не закрыто, и кандидат от ожидаемого пира
+               if (peerConnection && peerConnection.signalingState !== 'closed' && data.sender === currentTarget && data.candidate) {
+                    try {
+                       // console.log(`[Socket:${username}] Adding received ICE candidate from ${currentTarget}`); // Тоже много логов
+                       await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                       // console.log(`[Socket:${username}] ICE candidate added successfully.`);
+                   } catch (error) {
+                       // Игнорируем ошибки добавления кандидатов если соединение уже закрывается/закрыто
+                       if (peerConnection && peerConnection.signalingState !== 'closed') {
+                          console.warn(`[Socket:${username}] Error adding received ICE candidate:`, error.message);
+                       }
+                   }
+               } else {
+                   // Логируем игнорирование только если есть текущая цель звонка
+                   // if (currentTarget) {
+                   //     console.warn(`[Socket:${username}] Ignoring ICE candidate: PC?(${!!peerConnection}) Closed?(${peerConnection?.signalingState === 'closed'}) Sender?(${data.sender} vs ${currentTarget}) Cand?(${!!data.candidate})`);
+                   // }
+               }
           });
 
-          // Handle cases where the other user ends or rejects the call (Optional: Needs server implementation)
-            // socket.on('call_ended_by_peer', function(data) {
-            //     if (data.sender === currentTarget) {
-            //         console.log("Call ended by peer:", data.sender);
-            //         alert(`Звонок с ${data.sender} завершен.`);
-            //         cleanUpCall();
-            //     }
-            // });
-             // socket.on('call_rejected_by_peer', function(data) {
-             //     if (data.sender === currentTarget) {
-             //         console.log("Call rejected by peer:", data.sender);
-             //         alert(`${data.sender} отклонил(а) ваш звонок.`);
-             //         cleanUpCall();
-             //     }
-             // });
-             // socket.on('peer_is_busy', function(data) {
-             //     if (data.sender === currentTarget) {
-             //         console.log("Peer is busy:", data.sender);
-             //         alert(`${data.sender} сейчас занят(а).`);
-             //         cleanUpCall();
-             //     }
-             // });
+          // --- Опциональные обработчики завершения/отклонения звонка другим пиром ---
+          // Вам нужно будет добавить соответствующие emit на сервере и здесь
+          // socket.on('call_ended_by_peer', function(data) {
+          //     if (data.sender === currentTarget) {
+          //         console.log(`[Socket] Call ended by peer: ${data.sender}`);
+          //         alert(`Звонок с ${data.sender} завершен другим пользователем.`);
+          //         cleanUpCall();
+          //     }
+          // });
+          // socket.on('call_rejected_by_peer', function(data) {
+          //     if (data.sender === currentTarget) {
+          //         console.log(`[Socket] Call rejected by peer: ${data.sender}`);
+          //         alert(`${data.sender} отклонил(а) ваш звонок.`);
+          //         cleanUpCall();
+          //     }
+          // });
+          // socket.on('peer_is_busy', function(data) {
+          //     if (data.sender === currentTarget) {
+          //         console.log(`[Socket] Peer is busy: ${data.sender}`);
+          //         alert(`${data.sender} сейчас занят(а).`);
+          //         cleanUpCall();
+          //     }
+          // });
+
+      } // --- Конец setupGlobalListeners ---
 
 
-           socket.on('connect_error', (err) => {
-             console.error("Socket connection error:", err);
-             alert("Не удается подключиться к серверу чата. Пожалуйста, проверьте ваше соединение и обновите страницу.");
-           });
-
-           socket.on('disconnect', (reason) => {
-               console.warn("Socket disconnected:", reason);
-               // Optionally try to reconnect or inform the user
-                if (reason === 'io server disconnect') {
-                     // The server deliberately disconnected the client
-                     alert("Вы были отключены от сервера.");
-                } else {
-                     // Might be a network issue, Socket.IO client usually tries to reconnect automatically
-                     // alert("Соединение с сервером потеряно. Попытка переподключения...");
-                }
-                // Clean up call state if disconnected during a call
-                if (currentTarget) {
-                    console.warn("Cleaning up call due to disconnection.");
-                    cleanUpCall();
-                }
-           });
-
-           socket.on('reconnect', (attemptNumber) => {
-                console.log(`Socket reconnected after ${attemptNumber} attempts.`);
-                // Re-register user as active upon reconnecting
-                if (username && avatar) {
-                    socket.emit('user_active', { username: username, avatar: avatar });
-                    socket.emit('get_users');
-                    socket.emit('get_messages'); // Re-fetch messages on reconnect
-                }
-           });
-
-      } // End of setupGlobalListeners
-
-
-      // --- Event Listeners for UI elements ---
+      // --- Обработчики событий UI ---
       document.getElementById('message').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for newline
-            e.preventDefault(); // Prevent default newline in input
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
       });
 
       document.getElementById('profile-btn').addEventListener('click', function() {
-         document.getElementById('profile-modal').style.display = 'block';
-         document.getElementById('new-username').value = username; // Pre-fill current username
-         // Pre-fill avatar preview if possible (optional)
-          const currentAvatarPreview = document.getElementById('new-avatar-preview');
-          if (avatar) {
-             currentAvatarPreview.src = `/static/uploads/${avatar}`;
-             currentAvatarPreview.style.display = 'block';
-          } else {
-             currentAvatarPreview.style.display = 'none';
-             currentAvatarPreview.src = '#';
-          }
+         document.getElementById('new-username').value = username || ''; // Предзаполняем имя
+         const currentAvatarPreview = document.getElementById('new-avatar-preview');
+         if (avatar) { // Показываем текущий аватар
+            currentAvatarPreview.src = `/static/uploads/${avatar}`;
+            currentAvatarPreview.style.display = 'block';
+         } else {
+            currentAvatarPreview.style.display = 'none';
+            currentAvatarPreview.src = '#';
+         }
+         showElement('profile-modal');
       });
 
       document.getElementById('emoji-btn').addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent click from closing picker immediately
-        const picker = document.getElementById('emoji-picker');
-        picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+         event.stopPropagation();
+         const picker = document.getElementById('emoji-picker');
+         picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
       });
 
-       // Close emoji picker if clicking outside
-       document.addEventListener('click', function(event) {
+      // Закрытие пикера эмодзи по клику вне его
+      document.addEventListener('click', function(event) {
          const picker = document.getElementById('emoji-picker');
          const emojiBtn = document.getElementById('emoji-btn');
-         if (picker.style.display === 'block' && !picker.contains(event.target) && event.target !== emojiBtn) {
-           picker.style.display = 'none';
+          // Проверяем, что пикер видим, и клик был не по нему и не по кнопке его вызова
+         if (picker && picker.style.display === 'block' && !picker.contains(event.target) && event.target !== emojiBtn) {
+           hideElement('emoji-picker');
          }
        });
 
-
-       // Send activity ping periodically
-       setInterval(() => {
-         if (socket.connected && username) {
-           // console.log("Sending periodic user_active ping");
-           socket.emit('user_active', { username: username, avatar: avatar });
-           // No need to request users/messages here, server broadcasts updates
-         }
-       }, 30000); // Ping every 30 seconds
-
-
-       // Initial scroll to bottom of chat if messages are loaded statically (though we load dynamically now)
+       // --- Инициализация скролла чата при загрузке (если нужно) ---
        window.onload = () => {
          const chat = document.getElementById('chat');
          if(chat) chat.scrollTop = chat.scrollHeight;
