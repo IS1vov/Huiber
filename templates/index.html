@@ -5,239 +5,432 @@
     <title>Huiber</title>
     <link rel="icon" type="image/png" href="/static/logo.png" />
     <style>
-      body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          margin: 0;
-          background: url('/static/background.png') no-repeat center center fixed;
-          background-size: cover;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-      }
-      h1 {
-          font-size: 24px;
-          color: #4a148c;
-          margin: 20px 0;
-          display: flex;
-          align-items: center;
-      }
-      #chat-container, #username-form, #profile-modal, #users-list, #call-modal, #call-window {
-          width: 100%;
-          max-width: 600px;
-          background: rgba(255, 255, 255, 0.9);
-          border: 1px solid #ce93d8;
-          border-radius: 15px;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-      #chat {
-          height: 500px;
-          overflow-y: auto;
-          padding: 20px;
-          background: #f3e5f5;
-      }
-      .message {
-          margin: 10px 0;
-          padding: 12px 16px;
-          border-radius: 20px;
-          max-width: 70%;
-          word-wrap: break-word;
-          display: flex;
-          align-items: center;
-      }
-      .my-message {
-          background-color: #ab47bc;
-          color: white;
-          margin-left: auto;
-      }
-      .other-message {
-          background-color: #f06292;
-          color: white;
-          margin-right: auto;
-      }
-      .username {
-          font-weight: 600;
-          margin-left: 5px;
-      }
-      .message img.content-img {
-          max-width: 100%;
-          border-radius: 10px;
-          margin-top: 5px;
-      }
-      .avatar {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          margin-right: 5px;
-      }
-      #input-area {
-          display: flex;
-          padding: 20px;
-          border-top: 1px solid #ce93d8;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.9);
-      }
-      #message {
-          flex: 1;
-          padding: 10px;
-          border: 1px solid #ce93d8;
-          border-radius: 20px;
-          outline: none;
-          font-size: 14px;
-          background: #fff;
-      }
-      #send-btn, #emoji-btn, #file-btn, #profile-btn, .call-user-btn {
-          background: none;
-          border: none;
-          color: #7b1fa2;
-          font-weight: 600;
-          margin-left: 10px;
-          cursor: pointer;
-      }
-      .call-user-btn {
-          background-color: #8b4513;
-          color: white;
-          padding: 5px 10px;
-          border-radius: 5px;
-      }
-      .call-user-btn:hover {
-          background-color: #a0522d;
-      }
-      #username-form, #profile-modal, #call-modal, #call-window {
-          padding: 20px;
-          text-align: center;
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          display: none;
-          z-index: 10;
-      }
-      #username, #avatar, #new-username, #new-avatar {
-          padding: 10px;
-          border: 1px solid #ce93d8;
-          border-radius: 5px;
-          width: 70%;
-          margin-bottom: 10px;
-      }
-      #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn, #end-call-btn {
-          background-color: #ab47bc;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 5px;
-          cursor: pointer;
-          margin: 5px;
-      }
-      #emoji-picker {
-          display: none;
-          position: absolute;
-          bottom: 70px;
-          background: white;
-          border: 1px solid #ce93d8;
-          padding: 10px;
-          border-radius: 10px;
-      }
-      .emoji {
-          font-size: 20px;
-          cursor: pointer;
-          margin: 5px;
-      }
-      .delete-btn {
-          background: none;
-          border: none;
-          color: #d81b60;
-          font-weight: 600;
-          margin-left: 10px;
-          cursor: pointer;
-          display: none;
-      }
-      .my-message .delete-btn {
-          display: inline;
-      }
-      #users-list {
-          padding: 20px;
-          margin-top: 20px;
-      }
-      .user-item {
-          display: flex;
-          align-items: center;
-          margin: 10px 0;
-      }
-      .user-item img {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          margin-right: 10px;
-      }
+      /* ... (keep all your existing CSS styles) ... */
+       body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: url('/static/background.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #4a148c;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        #chat-container, #username-form, #profile-modal, #users-list, #call-modal, #call-window {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ce93d8;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px; /* Added margin between elements */
+        }
+         #chat {
+            height: 400px; /* Adjusted height slightly */
+            overflow-y: auto;
+            padding: 20px;
+            background: #f3e5f5;
+            border-top-left-radius: 15px; /* Rounded corners */
+            border-top-right-radius: 15px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px; /* Adjusted padding */
+            border-radius: 20px;
+            max-width: 75%; /* Slightly wider */
+            word-wrap: break-word;
+            display: flex;
+            align-items: center;
+            line-height: 1.4; /* Improved readability */
+        }
+        .my-message {
+            background-color: #ab47bc;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px; /* Different corner for visual cue */
+        }
+        .other-message {
+            background-color: #f06292;
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 5px; /* Different corner for visual cue */
+        }
+        .username {
+            font-weight: 600;
+            margin-right: 5px; /* Space after username */
+            margin-left: 5px;
+        }
+        .message img.content-img {
+            max-width: 100%;
+            max-height: 250px; /* Limit image height */
+            object-fit: cover; /* Maintain aspect ratio */
+            border-radius: 10px;
+            margin-top: 8px; /* Space above image */
+            cursor: pointer; /* Indicate it's clickable */
+        }
+        .avatar {
+            width: 30px; /* Slightly larger avatar */
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px; /* More space */
+            align-self: flex-start; /* Align avatar top */
+        }
+        #input-area {
+            display: flex;
+            padding: 15px; /* Adjusted padding */
+            border-top: 1px solid #ce93d8;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
+            border-bottom-left-radius: 15px; /* Rounded corners */
+            border-bottom-right-radius: 15px;
+        }
+        #message {
+            flex: 1;
+            padding: 10px 15px; /* More padding */
+            border: 1px solid #ce93d8;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+            background: #fff;
+            margin-right: 10px; /* Space between input and buttons */
+        }
+        #send-btn, #emoji-btn, #file-btn, #profile-btn, .call-user-btn {
+            background: none;
+            border: none;
+            color: #7b1fa2;
+            font-size: 20px; /* Larger icons/buttons */
+            font-weight: normal; /* Normal weight */
+            margin-left: 5px; /* Reduced margin */
+            cursor: pointer;
+            padding: 5px; /* Padding for click area */
+            transition: color 0.2s ease; /* Smooth hover */
+        }
+        #send-btn:hover, #emoji-btn:hover, #file-btn:hover, #profile-btn:hover {
+             color: #4a148c; /* Darker purple on hover */
+        }
+        .call-user-btn {
+            background-color: #4caf50; /* Green call button */
+            color: white;
+            padding: 6px 12px; /* Adjusted padding */
+            border-radius: 15px; /* Rounded button */
+            font-size: 12px; /* Smaller font */
+            margin-left: auto; /* Push to the right */
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .call-user-btn:hover {
+            background-color: #388e3c; /* Darker green */
+        }
+        #username-form, #profile-modal, #call-modal, #call-window {
+            padding: 30px; /* More padding */
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 1000; /* Ensure modals are on top */
+             width: 90%; /* Responsive width */
+            max-width: 400px; /* Max width for modals */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+        }
+        #username, #avatar, #new-username, #new-avatar {
+            padding: 12px; /* More padding */
+            border: 1px solid #ce93d8;
+            border-radius: 8px; /* Rounded inputs */
+            width: calc(100% - 26px); /* Full width minus padding/border */
+            margin-bottom: 15px; /* More space */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        #save-btn, #save-profile-btn, #accept-call-btn, #reject-call-btn, #end-call-btn {
+            background-color: #ab47bc;
+            color: white;
+            border: none;
+            padding: 10px 20px; /* Bigger buttons */
+            border-radius: 8px; /* Rounded buttons */
+            cursor: pointer;
+            margin: 10px 5px 0; /* Spacing */
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+         #save-btn:hover, #save-profile-btn:hover, #accept-call-btn:hover, #reject-call-btn:hover, #end-call-btn:hover {
+            background-color: #8e24aa; /* Darker purple */
+        }
+         #accept-call-btn { background-color: #4caf50; } /* Green accept */
+         #accept-call-btn:hover { background-color: #388e3c; }
+         #reject-call-btn, #end-call-btn { background-color: #f44336; } /* Red reject/end */
+         #reject-call-btn:hover, #end-call-btn:hover { background-color: #d32f2f; }
+
+        #emoji-picker {
+            display: none;
+            position: absolute;
+            bottom: 80px; /* Positioned above input */
+            right: 20px; /* Align to right */
+            background: white;
+            border: 1px solid #ce93d8;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+        .emoji {
+            font-size: 24px; /* Larger emoji */
+            cursor: pointer;
+            margin: 5px 8px; /* More spacing */
+            display: inline-block; /* Ensure proper spacing */
+            transition: transform 0.1s ease;
+        }
+         .emoji:hover {
+            transform: scale(1.2); /* Zoom effect */
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7); /* Lighter delete color */
+            font-weight: normal; /* Normal weight */
+            margin-left: 10px;
+            cursor: pointer;
+            display: none; /* Hide by default */
+            font-size: 12px; /* Smaller delete button */
+            padding: 2px 5px;
+        }
+        .my-message:hover .delete-btn { /* Show on hover for own messages */
+             display: inline;
+             color: #ffcdd2; /* Light red on hover */
+        }
+         .delete-btn:hover {
+            color: #e57373; /* Darker red on hover */
+         }
+
+        #users-list {
+            padding: 20px;
+            margin-top: 0; /* Remove top margin if chat is displayed */
+             border-top-left-radius: 0; /* Align with chat container */
+             border-top-right-radius: 0;
+             border-top: 1px solid #e1bee7; /* Separator line */
+             background: rgba(255, 255, 255, 0.85); /* Slightly different background */
+        }
+        #users-list h3 {
+            margin-top: 0;
+            color: #6a1b9a; /* Darker purple heading */
+            border-bottom: 1px solid #e1bee7;
+            padding-bottom: 10px;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0; /* More vertical spacing */
+            padding: 10px; /* Padding inside item */
+            border-radius: 8px; /* Rounded item */
+            transition: background-color 0.2s ease;
+        }
+         .user-item:hover {
+             background-color: #f3e5f5; /* Light purple hover */
+         }
+        .user-item img.avatar { /* Use avatar class for consistency */
+             width: 40px;
+             height: 40px;
+             margin-right: 15px; /* More space */
+        }
+         .user-item span {
+             flex-grow: 1; /* Allow text to take available space */
+             font-size: 14px;
+             color: #4a148c;
+         }
+          .user-item .last-seen {
+              font-size: 11px;
+              color: #7b1fa2;
+              display: block; /* Show on new line */
+              margin-top: 2px;
+          }
+
+         #call-window {
+             background-color: #e1f5fe; /* Light blue background */
+             border-color: #81d4fa;
+         }
+          #call-window h3 {
+             color: #0277bd;
+         }
+          #call-participants {
+              margin: 15px 0;
+              font-weight: 500;
+              color: #03a9f4;
+          }
+           /* Spinner/Indicator for connecting? (Optional) */
+          .connecting-indicator {
+              /* Style for a visual indicator while connecting */
+              display: none; /* Show when needed via JS */
+              margin: 10px auto;
+              border: 4px solid #f3f3f3;
+              border-top: 4px solid #03a9f4;
+              border-radius: 50%;
+              width: 30px;
+              height: 30px;
+              animation: spin 1s linear infinite;
+          }
+           @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+          }
     </style>
   </head>
   <body>
-    <h1>Huiber <button id="profile-btn">Профиль</button></h1>
+    <h1>Huiber <button id="profile-btn">👤 Профиль</button></h1>
+
     <div id="username-form" style="display: none;">
-      <input type="text" id="username" placeholder="Введи своё имя" />
+      <h3>Добро пожаловать!</h3>
+      <p>Представьтесь и выберите аватар:</p>
+      <input type="text" id="username" placeholder="Ваше имя" required />
       <br />
-      <input type="file" id="avatar" accept="image/*" />
+      <label
+        for="avatar"
+        style="cursor: pointer; color: #7b1fa2; margin-bottom: 10px; display: inline-block;"
+        >📷 Выбрать аватар</label
+      >
+      <input
+        type="file"
+        id="avatar"
+        accept="image/*"
+        style="display: none;"
+        required
+      />
       <br />
-      <button id="save-btn" onclick="setUsername()">Сохранить</button>
+      <img
+        id="avatar-preview"
+        src="#"
+        alt="Предпросмотр аватара"
+        style="max-width: 100px; max-height: 100px; border-radius: 50%; margin-bottom: 15px; display: none;"
+      />
+      <br />
+      <button id="save-btn" onclick="setUsername()">Войти в чат</button>
     </div>
+
     <div id="profile-modal" style="display: none;">
-      <h3>Профиль</h3>
+      <h3>Редактировать профиль</h3>
       <input type="text" id="new-username" placeholder="Новое имя" />
       <br />
-      <input type="file" id="new-avatar" accept="image/*" />
+      <label
+        for="new-avatar"
+        style="cursor: pointer; color: #7b1fa2; margin-bottom: 10px; display: inline-block;"
+        >📷 Сменить аватар</label
+      >
+      <input
+        type="file"
+        id="new-avatar"
+        accept="image/*"
+        style="display: none;"
+      />
+      <br />
+      <img
+        id="new-avatar-preview"
+        src="#"
+        alt="Предпросмотр нового аватара"
+        style="max-width: 100px; max-height: 100px; border-radius: 50%; margin-bottom: 15px; display: none;"
+      />
       <br />
       <button id="save-profile-btn" onclick="updateProfile()">Сохранить</button>
+      <button
+        onclick="document.getElementById('profile-modal').style.display = 'none'"
+      >
+        Отмена
+      </button>
     </div>
+
     <div id="call-modal" style="display: none;">
-      <h3 id="call-text">Входящий звонок от Huiber</h3>
+      <h3 id="call-text">Входящий звонок...</h3>
+      <p>📞</p>
       <button id="accept-call-btn" onclick="acceptCall()">Принять</button>
       <button id="reject-call-btn" onclick="rejectCall()">Отклонить</button>
     </div>
+
     <div id="call-window" style="display: none;">
-      <h3>Аудиозвонок</h3>
-      <p id="call-participants"></p>
-      <button id="end-call-btn" onclick="endCall()">Прервать</button>
+      <h3>🔊 Аудиозвонок</h3>
+      <div class="connecting-indicator" id="connecting-indicator"></div>
+      <p id="call-participants">Соединение...</p>
+      <audio id="remote-audio" autoplay style="display: none;"></audio>
+      <button id="end-call-btn" onclick="endCall()">Завершить</button>
     </div>
+
     <div id="chat-container" style="display: none;">
       <div id="chat">
         {% for msg in messages %}
         <div
-          class="message"
+          class="message {% if msg.username == session.get('username') %}my-message{% else %}other-message{% endif %}"
           data-id="{{ msg.id }}"
           data-username="{{ msg.username }}"
         >
-          {% if msg.username in users %}
+          {% if msg.username in users and users[msg.username].avatar %}
           <img
             src="/static/uploads/{{ users[msg.username].avatar }}"
             class="avatar"
+            alt="{{ msg.username }}'s avatar"
           />
-          {% endif %}
-          <span class="username">{{ msg.username }}:</span> {{ msg.text }} {% if
-          msg.image %}
-          <img src="/static/uploads/{{ msg.image }}" class="content-img" />
-          {% endif %}
+          {% else %}
+          <img src="/static/logo.png" class="avatar" alt="Default avatar" /> {%
+          endif %}
+          <div>
+            <span class="username">{{ msg.username }}:</span>
+            <span class="message-text">{{ msg.text }}</span>
+            {% if msg.image %}
+            <img
+              src="/static/uploads/{{ msg.image }}"
+              class="content-img"
+              onclick="openImageModal('/static/uploads/{{ msg.image }}')"
+              alt="Изображение пользователя"
+            />
+            {% endif %}
+          </div>
+          {% if msg.username == session.get('username') %}
           <button class="delete-btn" onclick="deleteMessage('{{ msg.id }}')">
-            Удалить
+            🗑️
           </button>
+          {% endif %}
         </div>
         {% endfor %}
       </div>
       <div id="input-area">
-        <input type="text" id="message" placeholder="Сообщение..." />
-        <button id="emoji-btn">😊</button>
+        <input type="text" id="message" placeholder="Введите сообщение..." />
+        <button id="emoji-btn" title="Эмодзи">😊</button>
         <input
           type="file"
           id="file-input"
           accept="image/*"
           style="display: none;"
+          onchange="previewImage(event, 'message-preview-container')"
         />
         <button
           id="file-btn"
           onclick="document.getElementById('file-input').click()"
+          title="Прикрепить фото"
         >
           📷
         </button>
-        <button id="send-btn" onclick="sendMessage()">Отправить</button>
+        <button id="send-btn" onclick="sendMessage()" title="Отправить">
+          ➤
+        </button>
+      </div>
+      <div
+        id="message-preview-container"
+        style="padding: 0 15px 10px; text-align: center; display: none;"
+      >
+        <img
+          id="message-preview"
+          src="#"
+          alt="Предпросмотр изображения"
+          style="max-width: 100px; max-height: 100px; border-radius: 5px; margin-top: 5px;"
+        />
+        <button
+          onclick="clearMessagePreview()"
+          style="font-size: 10px; background: #eee; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; margin-left: 5px;"
+        >
+          ✖
+        </button>
       </div>
       <div id="emoji-picker">
         <span class="emoji" onclick="addEmoji('😊')">😊</span>
@@ -245,366 +438,969 @@
         <span class="emoji" onclick="addEmoji('❤️')">❤️</span>
         <span class="emoji" onclick="addEmoji('👍')">👍</span>
         <span class="emoji" onclick="addEmoji('😢')">😢</span>
+        <span class="emoji" onclick="addEmoji('🤔')">🤔</span>
+        <span class="emoji" onclick="addEmoji('🎉')">🎉</span>
+        <span class="emoji" onclick="addEmoji('🔥')">🔥</span>
+        <span class="emoji" onclick="addEmoji('👋')">👋</span>
+        <span class="emoji" onclick="addEmoji('🙏')">🙏</span>
       </div>
     </div>
+
     <div id="users-list">
-      <h3>Пользователи</h3>
+      <h3>👥 Пользователи онлайн</h3>
       <div id="users-content"></div>
     </div>
+
     <audio id="ringtone" src="/static/ringtone.mp3" loop></audio>
+
+    <div
+      id="imageModal"
+      style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8);"
+    >
+      <span
+        onclick="closeImageModal()"
+        style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;"
+        >&times;</span
+      >
+      <img
+        id="modalImage"
+        style="margin: auto; display: block; max-width: 80%; max-height: 80%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+      />
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
       const socket = io();
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
-      let users = {};
+      let users = {}; // Store user data received from server
+
+      // --- WebRTC Globals ---
       let peerConnection;
       let localStream;
-      let currentTarget;
+      let currentTarget = null; // User being called or calling us
+      let receivedOffer = null; // To store offer when receiving a call
       const ringtone = document.getElementById('ringtone');
+      const remoteAudio = document.getElementById('remote-audio'); // Get the audio element
 
-      if (!username) {
-          document.getElementById('username-form').style.display = 'block';
+      // ICE Server Configuration
+      const configuration = {
+        iceServers: [
+            // Reliable public STUN servers:
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+            // Consider adding a TURN server for complex network scenarios if needed
+            // { urls: 'turn:your.turn.server:port', username: 'user', credential: 'password' }
+        ]
+      };
+
+      // --- Initial Setup ---
+      if (!username || !avatar) { // Require both username and avatar
+        document.getElementById('username-form').style.display = 'block';
+        // Add preview logic for initial avatar selection
+        document.getElementById('avatar').onchange = (event) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('avatar-preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            if(event.target.files[0]){
+                 reader.readAsDataURL(event.target.files[0]);
+            } else {
+                 document.getElementById('avatar-preview').style.display = 'none';
+                 document.getElementById('avatar-preview').src = '#';
+            }
+        };
       } else {
-          document.getElementById('chat-container').style.display = 'block';
-          updateMessageStyles();
-          socket.emit('user_active', { username: username, avatar: avatar });
-          socket.emit('get_users');
-          requestNotificationPermission();
+        document.getElementById('chat-container').style.display = 'block';
+        document.getElementById('users-list').style.marginTop = '0'; // Adjust margin
+        initializeChat();
       }
 
-      function requestNotificationPermission() {
-          if (!('Notification' in window)) {
-              console.log('Уведомления не поддерживаются в этом браузере');
-              return;
-          }
-
-          // Совместимость с Safari
-          const requestPermission = () => {
-              return new Promise((resolve, reject) => {
-                  const permissionResult = Notification.requestPermission(result => {
-                      resolve(result);
-                  });
-                  if (permissionResult) {
-                      permissionResult.then(resolve, reject);
-                  }
-              });
-          };
-
-          if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-              requestPermission().then(permission => {
-                  if (permission === 'granted') {
-                      console.log('Разрешение на уведомления получено');
-                      // Тестовое уведомление для Safari
-                      new Notification('Уведомления включены', {
-                          body: 'Теперь вы будете получать сообщения!',
-                          icon: '/static/logo.png'
-                      });
-                  } else {
-                      console.log('Разрешение на уведомления отклонено');
-                  }
-              }).catch(err => {
-                  console.error('Ошибка запроса разрешения:', err);
-              });
-          }
+      function initializeChat() {
+          console.log("Initializing chat for user:", username);
+          updateMessageStyles();
+          socket.emit('user_active', { username: username, avatar: avatar });
+          socket.emit('get_users'); // Request initial user list
+          socket.emit('get_messages'); // Request message history
+          requestNotificationPermission();
+          setupGlobalListeners(); // IMPORTANT: Setup listeners after user is known
       }
 
       function setUsername() {
-          username = document.getElementById('username').value.trim();
+          const usernameInput = document.getElementById('username');
           const avatarInput = document.getElementById('avatar');
-          if (username && avatarInput.files[0]) {
+          username = usernameInput.value.trim();
+          const avatarFile = avatarInput.files[0];
+
+          if (username && avatarFile) {
               const formData = new FormData();
-              formData.append('file', avatarInput.files[0]);
+              formData.append('file', avatarFile);
+
               fetch('/upload', { method: 'POST', body: formData })
-                  .then(response => response.text())
+                  .then(response => {
+                      if (!response.ok) throw new Error('Upload failed');
+                      return response.text();
+                  })
                   .then(filename => {
                       avatar = filename;
                       localStorage.setItem('username', username);
                       localStorage.setItem('avatar', avatar);
                       document.getElementById('username-form').style.display = 'none';
                       document.getElementById('chat-container').style.display = 'block';
-                      updateMessageStyles();
-                      socket.emit('user_active', { username: username, avatar: avatar });
-                      socket.emit('get_users');
-                      requestNotificationPermission();
+                      document.getElementById('users-list').style.marginTop = '0';
+                      initializeChat();
+                  })
+                  .catch(error => {
+                      console.error('Error setting username/avatar:', error);
+                      alert('Ошибка загрузки аватара. Попробуйте снова.');
                   });
+          } else {
+              alert('Пожалуйста, введите имя и выберите аватар.');
           }
       }
 
-      function updateProfile() {
-          const newUsername = document.getElementById('new-username').value.trim();
+       function updateProfile() {
+          const newUsernameInput = document.getElementById('new-username');
           const newAvatarInput = document.getElementById('new-avatar');
-          if (newUsername || newAvatarInput.files[0]) {
-              if (newAvatarInput.files[0]) {
-                  const formData = new FormData();
-                  formData.append('file', newAvatarInput.files[0]);
-                  fetch('/upload', { method: 'POST', body: formData })
-                      .then(response => response.text())
-                      .then(filename => {
-                          username = newUsername || username;
-                          avatar = filename;
-                          localStorage.setItem('username', username);
-                          localStorage.setItem('avatar', avatar);
-                          document.getElementById('profile-modal').style.display = 'none';
-                          updateMessageStyles();
-                          socket.emit('user_active', { username: username, avatar: avatar });
-                          socket.emit('get_users');
-                          location.reload();
-                      });
-              } else {
-                  username = newUsername || username;
-                  localStorage.setItem('username', username);
-                  document.getElementById('profile-modal').style.display = 'none';
-                  updateMessageStyles();
-                  socket.emit('user_active', { username: username, avatar: avatar });
-                  socket.emit('get_users');
-                  location.reload();
+          const newUsername = newUsernameInput.value.trim();
+          const newAvatarFile = newAvatarInput.files[0];
+
+          let updateData = {};
+          let needsReload = false;
+
+          const handleUpdate = (updatedAvatarFilename = null) => {
+              const oldUsername = localStorage.getItem('username');
+              if (newUsername && newUsername !== oldUsername) {
+                  updateData.username = newUsername;
+                  localStorage.setItem('username', newUsername);
+                  username = newUsername; // Update global variable
+                  needsReload = true; // Reload if username changes to update messages etc.
               }
+               if (updatedAvatarFilename) {
+                  updateData.avatar = updatedAvatarFilename;
+                  localStorage.setItem('avatar', updatedAvatarFilename);
+                  avatar = updatedAvatarFilename; // Update global variable
+               }
+
+               if (Object.keys(updateData).length > 0) {
+                    socket.emit('user_active', { username: localStorage.getItem('username'), avatar: localStorage.getItem('avatar') }); // Update server immediately
+                    socket.emit('get_users'); // Refresh user list for everyone
+                    alert('Профиль обновлен!');
+                    document.getElementById('profile-modal').style.display = 'none';
+                    document.getElementById('new-username').value = ''; // Clear inputs
+                    document.getElementById('new-avatar').value = '';
+                    document.getElementById('new-avatar-preview').style.display = 'none';
+                    document.getElementById('new-avatar-preview').src = '#';
+
+                    if (needsReload) {
+                        location.reload(); // Reload only if username changed
+                    } else {
+                         updateMessageStyles(); // Update styles if only avatar changed
+                    }
+                } else {
+                    document.getElementById('profile-modal').style.display = 'none'; // Just close if nothing changed
+                }
+          };
+
+          if (newAvatarFile) {
+              const formData = new FormData();
+              formData.append('file', newAvatarFile);
+              fetch('/upload', { method: 'POST', body: formData })
+                  .then(response => {
+                       if (!response.ok) throw new Error('Upload failed');
+                       return response.text();
+                   })
+                  .then(filename => handleUpdate(filename))
+                  .catch(error => {
+                      console.error('Error updating profile avatar:', error);
+                      alert('Ошибка загрузки нового аватара.');
+                  });
+          } else {
+              handleUpdate(); // Handle potential username change without avatar change
           }
       }
 
-      function replaceDenis(text) {
-          return text.replace(/\b(денис|Денис|denis|Denis)\b/gi, 'xyecoc');
-      }
+      // --- Message Handling ---
 
-      socket.on('new_message', function(msg) {
-          const chat = document.getElementById('chat');
-          const div = document.createElement('div');
-          div.className = 'message';
-          div.dataset.id = msg.id;
-          div.dataset.username = msg.username;
-          const avatarSrc = (msg.username === username && avatar) ? `/static/uploads/${avatar}` : (users[msg.username] ? `/static/uploads/${users[msg.username].avatar}` : '');
-          const messageText = replaceDenis(msg.text);
-          div.innerHTML = `${avatarSrc ? '<img src="' + avatarSrc + '" class="avatar">' : ''}<span class="username">${msg.username}:</span> ${messageText}${msg.image ? '<img src="/static/uploads/' + msg.image + '" class="content-img">' : ''}<button class="delete-btn" onclick="deleteMessage('${msg.id}')">Удалить</button>`;
-          chat.appendChild(div);
-          updateMessageStyles();
-          chat.scrollTop = chat.scrollHeight;
+       function replaceDenis(text) {
+            // Using a case-insensitive regex with word boundaries
+            return text.replace(/\b(денис|denis)\b/gi, 'ХУЕСОС'); // Consider user experience with automatic replacements
+       }
 
-          if (msg.username !== username && 'Notification' in window && Notification.permission === 'granted' && document.hidden) {
-              new Notification(`Новое сообщение от ${msg.username}`, {
-                  body: messageText,
-                  icon: avatarSrc || '/static/logo.png'
-              });
-          }
-      });
+      function renderMessage(msg) {
+        const chat = document.getElementById('chat');
+        const isScrolledToBottom = chat.scrollHeight - chat.clientHeight <= chat.scrollTop + 50; // Check if near bottom before adding message
 
-      socket.on('message_deleted', function(data) {
-          const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
-          if (msgElement) msgElement.remove();
-      });
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.dataset.id = msg.id;
+        div.dataset.username = msg.username;
 
-      socket.on('users_list', function(users_data) {
-          users = users_data;
-          updateUsersList();
-      });
+        const userAvatar = users[msg.username]?.avatar || 'default_avatar.png'; // Use saved user data or default
+        const avatarSrc = `/static/uploads/${userAvatar}`;
+        const defaultAvatarSrc = '/static/logo.png'; // Path to your default logo/avatar
 
-      socket.on('update_users', function(users_data) {
-          users = users_data;
-          updateUsersList();
-      });
+        const messageText = replaceDenis(msg.text || ""); // Ensure text is defined
 
-      function updateUsersList() {
-          const usersContent = document.getElementById('users-content');
-          usersContent.innerHTML = '';
-          for (const [user, info] of Object.entries(users)) {
-              if (user !== username) {
-                  const lastSeenUTC = new Date(info.last_seen);
-                  const localOffset = new Date().getTimezoneOffset() * -1;
-                  const lastSeenLocal = new Date(lastSeenUTC.getTime() + localOffset * 60 * 1000);
-                  const lastSeenFormatted = lastSeenLocal.toLocaleString('ru-RU');
-                  const div = document.createElement('div');
-                  div.className = 'user-item';
-                  div.innerHTML = `<img src="/static/uploads/${info.avatar}" class="avatar" alt="${user}'s avatar"><span>${user} — Последний раз онлайн: ${lastSeenFormatted}</span><button class="call-user-btn" onclick="callUser('${user}')">Позвонить</button>`;
-                  usersContent.appendChild(div);
-              }
-          }
+        let imageHTML = '';
+        if (msg.image) {
+            const imageSrc = `/static/uploads/${msg.image}`;
+            imageHTML = `<img src="${imageSrc}" class="content-img" onclick="openImageModal('${imageSrc}')" alt="Изображение пользователя ${msg.username}">`;
+        }
+
+        let deleteButtonHTML = '';
+        // Check against the *current* user logged in
+        if (msg.username === username) {
+            deleteButtonHTML = `<button class="delete-btn" onclick="deleteMessage('${msg.id}')" title="Удалить">🗑️</button>`;
+        }
+
+        div.innerHTML = `
+            <img src="${avatarSrc}" class="avatar" alt="${msg.username}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarSrc}';">
+            <div class="message-content-wrapper">
+                 <span class="username">${msg.username}:</span>
+                 <span class="message-text">${messageText}</span>
+                 ${imageHTML}
+            </div>
+            ${deleteButtonHTML}
+        `;
+
+        chat.appendChild(div);
+        updateSingleMessageStyle(div); // Apply style just to the new message
+
+         // Auto-scroll only if the user was already at the bottom
+         if (isScrolledToBottom) {
+            chat.scrollTop = chat.scrollHeight;
+         }
       }
 
       function sendMessage() {
-          const input = document.getElementById('message');
-          const fileInput = document.getElementById('file-input');
-          const text = input.value.trim();
-          if ((text || fileInput.files[0]) && username) {
-              if (fileInput.files[0]) {
-                  const formData = new FormData();
-                  formData.append('file', fileInput.files[0]);
-                  fetch('/upload', { method: 'POST', body: formData })
-                      .then(response => response.text())
-                      .then(filename => {
-                          socket.emit('send_message', { message: text, username: username, image: filename });
-                          input.value = '';
-                          fileInput.value = '';
-                          socket.emit('user_active', { username: username, avatar: avatar });
-                      });
+        const input = document.getElementById('message');
+        const fileInput = document.getElementById('file-input');
+        const text = input.value.trim();
+        const file = fileInput.files[0];
+
+        if ((text || file) && username) {
+            const sendMessageData = (imageData = null) => {
+                socket.emit('send_message', {
+                    message: text,
+                    username: username,
+                    image: imageData // Send filename if image exists
+                });
+                input.value = ''; // Clear text input
+                fileInput.value = ''; // Clear file input
+                clearMessagePreview(); // Clear preview
+                // No need to emit user_active here, it's done periodically and on connect/profile update
+            };
+
+            if (file) {
+                // Upload image first, then send message with image filename
+                const formData = new FormData();
+                formData.append('file', file);
+                fetch('/upload', { method: 'POST', body: formData })
+                    .then(response => {
+                         if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
+                         return response.text();
+                     })
+                    .then(filename => sendMessageData(filename))
+                    .catch(error => {
+                        console.error('Error uploading image:', error);
+                        alert('Ошибка загрузки изображения.');
+                        clearMessagePreview();
+                    });
+            } else {
+                // Send text message directly
+                sendMessageData();
+            }
+        }
+      }
+
+       function deleteMessage(id) {
+         if (confirm('Вы уверены, что хотите удалить это сообщение?')) {
+            console.log(`Requesting deletion of message ID: ${id} by user: ${username}`);
+            socket.emit('delete_message', { id: id, username: username });
+         }
+       }
+
+
+      // --- UI Updates & Helpers ---
+
+       function updateMessageStyles() {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(msg => updateSingleMessageStyle(msg));
+        // Scroll to bottom after initial load or full update
+        const chat = document.getElementById('chat');
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+       function updateSingleMessageStyle(msgElement) {
+            const msgUsername = msgElement.dataset.username;
+            msgElement.classList.toggle('my-message', msgUsername === username);
+            msgElement.classList.toggle('other-message', msgUsername !== username);
+            // Ensure delete button visibility is correct based on updated username if needed
+            const deleteBtn = msgElement.querySelector('.delete-btn');
+            if(deleteBtn){
+                deleteBtn.style.display = (msgUsername === username) ? '' : 'none'; // Re-evaluate visibility
+            }
+       }
+
+
+      function updateUsersList() {
+          console.log("Updating users list with data:", users);
+          const usersContent = document.getElementById('users-content');
+          usersContent.innerHTML = ''; // Clear current list
+
+          // Get current time to calculate 'online' status more accurately
+          const now = new Date();
+          const onlineThreshold = 20 * 1000; // 20 seconds threshold for 'online'
+
+          Object.entries(users).forEach(([user, info]) => {
+              if (user === username) return; // Don't list self
+
+              const div = document.createElement('div');
+              div.className = 'user-item';
+
+              const avatarSrc = info.avatar ? `/static/uploads/${info.avatar}` : '/static/logo.png';
+              const defaultAvatarSrc = '/static/logo.png';
+
+              let statusText = 'Офлайн';
+              let statusClass = 'offline'; // You can add CSS for this class
+
+              if (info.last_seen) {
+                    try {
+                       const lastSeenDate = new Date(info.last_seen); // Parse ISO string
+                       const timeDiff = now - lastSeenDate;
+
+                       if (timeDiff < onlineThreshold) {
+                           statusText = 'Онлайн';
+                           statusClass = 'online';
+                       } else {
+                           // Format last seen time nicely
+                           statusText = `Был(а) ${lastSeenDate.toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}`;
+                           statusClass = 'offline';
+                       }
+                    } catch (e) {
+                        console.error("Error parsing date for user", user, info.last_seen, e);
+                        statusText = "Статус неизвестен"; // Fallback for invalid date
+                    }
               } else {
-                  socket.emit('send_message', { message: text, username: username });
-                  input.value = '';
-                  socket.emit('user_active', { username: username, avatar: avatar });
+                    statusText = "Статус неизвестен"; // Fallback if no last_seen
               }
-          }
-      }
 
-      function deleteMessage(id) {
-          socket.emit('delete_message', { id: id, username: username });
-      }
 
-      function updateMessageStyles() {
-          const messages = document.querySelectorAll('.message');
-          messages.forEach(msg => {
-              const msgUsername = msg.dataset.username;
-              msg.classList.toggle('my-message', msgUsername === username);
-              msg.classList.toggle('other-message', msgUsername !== username);
+              div.innerHTML = `
+                  <img src="${avatarSrc}" class="avatar ${statusClass}" alt="${user}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarSrc}';">
+                  <div>
+                      <span>${user}</span>
+                      <span class="last-seen ${statusClass}">${statusText}</span>
+                  </div>
+                  ${statusClass === 'online' ? `<button class="call-user-btn" onclick="callUser('${user}')" title="Позвонить ${user}">📞</button>` : ''}
+              `; // Only show call button if user is 'online'
+
+              usersContent.appendChild(div);
           });
       }
 
+      function addEmoji(emoji) {
+        document.getElementById('message').value += emoji;
+        document.getElementById('emoji-picker').style.display = 'none';
+        document.getElementById('message').focus(); // Focus back on input
+      }
+
+       // Preview image before sending
+       function previewImage(event, containerId) {
+           const reader = new FileReader();
+           const previewContainer = document.getElementById(containerId);
+           const previewImage = previewContainer.querySelector('img'); // Assumes img is direct child or use specific ID
+
+           reader.onload = function(){
+               if (previewImage) {
+                 previewImage.src = reader.result;
+                 previewContainer.style.display = 'block';
+               }
+           }
+           if(event.target.files[0]){
+                reader.readAsDataURL(event.target.files[0]);
+           } else {
+                previewImage.src = '#';
+                previewContainer.style.display = 'none';
+           }
+       }
+
+       function clearMessagePreview() {
+          const previewContainer = document.getElementById('message-preview-container');
+          const previewImage = document.getElementById('message-preview');
+          const fileInput = document.getElementById('file-input');
+          previewImage.src = '#';
+          previewContainer.style.display = 'none';
+          fileInput.value = ''; // Important: clear the file input as well
+       }
+
+        // Add preview for profile avatar change
+        document.getElementById('new-avatar').onchange = (event) => previewImage(event, 'new-avatar-preview');
+
+
+      function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+          console.log('Уведомления не поддерживаются в этом браузере');
+          return;
+        }
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Разрешение на уведомления получено');
+                    new Notification('Huiber Уведомления', {
+                        body: 'Уведомления включены!',
+                        icon: '/static/logo.png'
+                    });
+                } else {
+                    console.log('Разрешение на уведомления отклонено');
+                }
+            }).catch(err => {
+                console.error('Ошибка запроса разрешения:', err);
+            });
+        }
+      }
+
+       function showNotification(title, body, icon) {
+           if ('Notification' in window && Notification.permission === 'granted') {
+               // Use a tag to prevent multiple notifications for the same event if window is hidden
+               const notification = new Notification(title, { body: body, icon: icon || '/static/logo.png', tag: 'huiber-message' });
+                // Optional: Close notification after a few seconds
+               // setTimeout(notification.close.bind(notification), 5000);
+           }
+       }
+
+        // --- Image Modal Functions ---
+       function openImageModal(src) {
+         document.getElementById('modalImage').src = src;
+         document.getElementById('imageModal').style.display = 'block';
+       }
+
+       function closeImageModal() {
+         document.getElementById('imageModal').style.display = 'none';
+         document.getElementById('modalImage').src = ''; // Clear src
+       }
+
+
+      // --- WebRTC Call Logic ---
+
+      function createPeerConnection() {
+         try {
+             console.log("Creating PeerConnection with config:", configuration);
+             peerConnection = new RTCPeerConnection(configuration);
+
+             // Handle ICE Candidates
+             peerConnection.onicecandidate = event => {
+                 if (event.candidate && currentTarget) {
+                     console.log("Sending ICE candidate to:", currentTarget);
+                     socket.emit('ice_candidate', {
+                         target: currentTarget,
+                         candidate: event.candidate,
+                         sender: username // Let the server know who sent it
+                     });
+                 }
+             };
+
+             // Handle incoming tracks (remote audio)
+             peerConnection.ontrack = event => {
+                 console.log("Track received:", event.track, event.streams);
+                 if (event.streams && event.streams[0]) {
+                      console.log("Setting remote audio srcObject");
+                      remoteAudio.srcObject = event.streams[0];
+                      remoteAudio.play().catch(e => console.error("Audio play failed:", e)); // Attempt to play
+                      document.getElementById('call-participants').textContent = `В разговоре с: ${currentTarget}`;
+                      document.getElementById('connecting-indicator').style.display = 'none'; // Hide spinner
+                 } else {
+                     // Fallback if stream structure is different (less common now)
+                     // let inboundStream = new MediaStream();
+                     // inboundStream.addTrack(event.track);
+                     // remoteAudio.srcObject = inboundStream;
+                 }
+             };
+
+              // Optional: Monitor connection state
+              peerConnection.oniceconnectionstatechange = () => {
+                  console.log("ICE Connection State:", peerConnection.iceConnectionState);
+                  const indicator = document.getElementById('connecting-indicator');
+                  const participantsText = document.getElementById('call-participants');
+                  switch(peerConnection.iceConnectionState) {
+                      case "checking":
+                          indicator.style.display = 'block';
+                          participantsText.textContent = `Соединение с ${currentTarget}...`;
+                          break;
+                      case "connected":
+                      case "completed":
+                          indicator.style.display = 'none';
+                           if (remoteAudio.srcObject) { // Check if track was received
+                               participantsText.textContent = `В разговоре с: ${currentTarget}`;
+                           } else {
+                                // This might happen if connection establishes but track hasn't arrived yet
+                                console.log("Connected but no remote track yet.");
+                           }
+                          break;
+                      case "disconnected":
+                      case "failed":
+                      case "closed":
+                          indicator.style.display = 'none';
+                          participantsText.textContent = `Звонок завершен или прерван`;
+                          endCall(); // Clean up if connection drops unexpectedly
+                          break;
+                      default:
+                           indicator.style.display = 'none';
+                          break;
+                  }
+              };
+
+
+             return peerConnection;
+         } catch (error) {
+             console.error("Error creating PeerConnection:", error);
+             alert("Не удалось инициализировать звонок. Проверьте разрешения браузера.");
+             return null;
+         }
+      }
+
+       async function startLocalMedia() {
+         try {
+             // Request only audio
+             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+             console.log("Local media stream obtained:", localStream);
+             return localStream;
+         } catch (error) {
+             console.error("Error getting user media:", error);
+             alert("Не удалось получить доступ к микрофону. Проверьте разрешения браузера.");
+             return null;
+         }
+      }
+
+
+      async function callUser(targetUsername) {
+          if (!username) {
+            alert("Сначала войдите в систему.");
+            return;
+          }
+          if (currentTarget) {
+              alert("Вы уже участвуете в звонке или звоните.");
+              return;
+          }
+          console.log(`Attempting to call user: ${targetUsername}`);
+          currentTarget = targetUsername;
+
+          localStream = await startLocalMedia();
+          if (!localStream) return; // Exit if mic access failed
+
+          peerConnection = createPeerConnection();
+          if (!peerConnection) return; // Exit if PC creation failed
+
+          // Add local audio track to the connection
+          localStream.getTracks().forEach(track => {
+             try {
+                 peerConnection.addTrack(track, localStream);
+                 console.log("Local track added:", track);
+             } catch (e) {
+                 console.error("Error adding track:", e);
+             }
+          });
+
+           // Show call window immediately for the caller
+           document.getElementById('call-participants').textContent = `Звонок пользователю ${currentTarget}...`;
+           document.getElementById('connecting-indicator').style.display = 'block';
+           document.getElementById('call-window').style.display = 'block';
+
+          try {
+                // Create Offer
+                console.log("Creating offer...");
+                const offer = await peerConnection.createOffer();
+                console.log("Offer created, setting local description.");
+                await peerConnection.setLocalDescription(offer);
+                console.log("Local description set. Emitting offer to target.");
+
+                // Send offer to the target user via the server
+                socket.emit('offer', {
+                    offer: offer,
+                    target: currentTarget,
+                    caller: username
+                });
+          } catch (error) {
+                console.error("Error creating/sending offer:", error);
+                alert("Не удалось начать звонок.");
+                endCall(); // Clean up on failure
+          }
+      }
+
+       // Accept an incoming call
+      async function acceptCall() {
+          console.log("Accepting call from:", currentTarget);
+          if (!currentTarget || !receivedOffer) {
+              console.error("Cannot accept call: Missing target or offer.");
+              rejectCall(); // Clean up inconsistent state
+              return;
+          }
+
+          document.getElementById('call-modal').style.display = 'none';
+          ringtone.pause();
+          ringtone.currentTime = 0;
+
+          localStream = await startLocalMedia();
+          if (!localStream) {
+              rejectCall(); // Can't accept without mic
+              return;
+          }
+
+          peerConnection = createPeerConnection();
+          if (!peerConnection) {
+              rejectCall(); // Can't accept if PC fails
+              return;
+          }
+
+
+           // Add local tracks BEFORE setting remote description/creating answer
+           localStream.getTracks().forEach(track => {
+               try {
+                   peerConnection.addTrack(track, localStream);
+                   console.log("Local track added (callee):", track);
+               } catch (e) {
+                   console.error("Error adding track (callee):", e);
+               }
+           });
+
+
+           // Show call window
+           document.getElementById('call-participants').textContent = `Соединение с ${currentTarget}...`;
+           document.getElementById('connecting-indicator').style.display = 'block';
+           document.getElementById('call-window').style.display = 'block';
+
+
+          try {
+              console.log("Setting remote description with received offer.");
+              await peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer));
+              console.log("Remote description set. Creating answer.");
+
+              const answer = await peerConnection.createAnswer();
+              console.log("Answer created. Setting local description.");
+              await peerConnection.setLocalDescription(answer);
+              console.log("Local description set. Emitting answer.");
+
+              // Send the answer back to the caller
+              socket.emit('answer', {
+                  answer: answer,
+                  target: currentTarget, // The original caller is the target for the answer
+                  caller: username      // We are the caller in the context of sending the answer
+              });
+
+              receivedOffer = null; // Clear the stored offer
+
+          } catch (error) {
+              console.error("Error processing offer/creating answer:", error);
+              alert("Не удалось подключиться к звонку.");
+              endCall();
+          }
+      }
+
+       // Reject an incoming call
+      function rejectCall() {
+          console.log("Rejecting call from:", currentTarget);
+          document.getElementById('call-modal').style.display = 'none';
+          ringtone.pause();
+          ringtone.currentTime = 0;
+          // Optionally notify the caller that the call was rejected (needs server logic)
+          // socket.emit('call_rejected', { target: currentTarget, caller: username });
+          cleanUpCall(); // Use the common cleanup function
+      }
+
+      // End an ongoing call (can be called by either party)
+      function endCall() {
+          console.log("Ending call with:", currentTarget);
+          // Notify the other user (optional, needs server support)
+          // if (currentTarget) {
+          //    socket.emit('call_ended', { target: currentTarget, sender: username });
+          // }
+          cleanUpCall();
+      }
+
+
+       // Centralized cleanup function
+      function cleanUpCall() {
+           console.log("Cleaning up call resources.");
+           if (peerConnection) {
+               peerConnection.onicecandidate = null;
+               peerConnection.ontrack = null;
+               peerConnection.oniceconnectionstatechange = null;
+               peerConnection.close();
+               peerConnection = null;
+               console.log("PeerConnection closed.");
+           }
+           if (localStream) {
+               localStream.getTracks().forEach(track => track.stop());
+               localStream = null;
+               console.log("Local stream stopped.");
+           }
+            if (remoteAudio.srcObject) {
+               remoteAudio.srcObject.getTracks().forEach(track => track.stop());
+               remoteAudio.srcObject = null;
+                remoteAudio.pause();
+                console.log("Remote audio stopped and cleared.");
+           }
+
+           // Reset UI
+           document.getElementById('call-window').style.display = 'none';
+           document.getElementById('call-modal').style.display = 'none'; // Ensure incoming modal is also hidden
+           document.getElementById('connecting-indicator').style.display = 'none';
+           document.getElementById('call-participants').textContent = 'Соединение...'; // Reset text
+
+
+           // Stop ringtone just in case
+           ringtone.pause();
+           ringtone.currentTime = 0;
+
+           // Reset state variables
+           currentTarget = null;
+           receivedOffer = null;
+           console.log("Call state reset.");
+      }
+
+      // --- Global Socket.IO Event Listeners ---
+      function setupGlobalListeners() {
+          console.log("Setting up global Socket.IO listeners.");
+
+            // Load initial messages
+           socket.on('initial_messages', function(loadedMessages) {
+                console.log("Received initial messages:", loadedMessages);
+                const chat = document.getElementById('chat');
+                chat.innerHTML = ''; // Clear any existing static messages
+                users = loadedMessages.users || {}; // Load users data sent with messages
+                loadedMessages.messages.forEach(msg => renderMessage(msg));
+                updateMessageStyles(); // Apply styles and scroll
+            });
+
+          socket.on('new_message', function(msg) {
+            console.log("New message received:", msg);
+            // Update users cache if the sender is new or updated (optional)
+             if (msg.username && msg.avatar && (!users[msg.username] || users[msg.username].avatar !== msg.avatar)) {
+                 users[msg.username] = { avatar: msg.avatar, last_seen: new Date().toISOString() }; // Update local cache
+                 // No need to call updateUsersList here unless you want the list to refresh instantly
+             }
+            renderMessage(msg);
+            // Show notification if window is not focused
+            if (msg.username !== username && document.hidden) {
+                 const avatarSrc = users[msg.username]?.avatar ? `/static/uploads/${users[msg.username].avatar}` : '/static/logo.png';
+                 showNotification(
+                     `Новое сообщение от ${msg.username}`,
+                     replaceDenis(msg.text || (msg.image ? "[Изображение]" : "")),
+                     avatarSrc
+                 );
+            }
+          });
+
+          socket.on('message_deleted', function(data) {
+            console.log("Message deletion event:", data);
+            const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
+            if (msgElement) {
+              msgElement.remove();
+              console.log("Message element removed from DOM:", data.id);
+            } else {
+                 console.warn("Could not find message element to delete:", data.id);
+            }
+          });
+
+          // Update user list when server sends it
+          socket.on('users_list', function(users_data) {
+            console.log("Received full users list:", users_data);
+            users = users_data; // Replace local cache with server's list
+            updateUsersList();
+            updateMessageStyles(); // Re-apply styles in case avatar changed
+          });
+
+          // Update user list on incremental updates
+          socket.on('update_users', function(users_data) {
+             console.log("Received incremental user update:", users_data);
+             users = users_data; // Update local cache
+             updateUsersList();
+             updateMessageStyles(); // Re-apply styles if avatar changed
+          });
+
+
+          // --- WebRTC Signaling Listeners ---
+
+          socket.on('incoming_call', function(data) {
+            console.log("Incoming call event from:", data.caller);
+             if (currentTarget) {
+                console.warn("Ignoring incoming call while already in a call or calling.");
+                // Optionally notify the caller that you are busy
+                // socket.emit('user_busy', { target: data.caller, caller: username });
+                return;
+             }
+             // Offer is expected to arrive separately via the 'offer' event
+             currentTarget = data.caller;
+             document.getElementById('call-text').textContent = `Входящий звонок от ${currentTarget}`;
+             document.getElementById('call-modal').style.display = 'block';
+             ringtone.play().catch(e => console.warn("Ringtone play failed:", e)); // Play ringtone
+          });
+
+
+          socket.on('offer', async function(data) {
+              console.log("Offer received from:", data.sender);
+               // Only process if this offer is for the current incoming call attempt
+              if (data.sender === currentTarget) {
+                  console.log("Storing received offer.");
+                  receivedOffer = data.offer; // Store the offer to be used in acceptCall
+                  // Do not process the offer here yet, wait for user to click Accept.
+              } else {
+                  console.warn("Received offer from unexpected sender:", data.sender, "Expected:", currentTarget);
+              }
+          });
+
+
+          socket.on('answer', async function(data) {
+              console.log("Answer received from:", data.sender);
+              if (peerConnection && data.sender === currentTarget) {
+                  console.log("Setting remote description with received answer.");
+                  try {
+                     await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                     console.log("Remote description (answer) set successfully.");
+                  } catch (error) {
+                     console.error("Error setting remote description (answer):", error);
+                     endCall(); // Clean up on failure
+                  }
+              } else {
+                 console.warn("Received answer but no peerConnection or unexpected sender:", data.sender);
+              }
+          });
+
+
+          socket.on('ice_candidate', async function(data) {
+              console.log("ICE candidate received from:", data.sender);
+              if (peerConnection && data.sender === currentTarget && data.candidate) {
+                   console.log("Adding received ICE candidate.");
+                   try {
+                      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                      console.log("ICE candidate added successfully.");
+                  } catch (error) {
+                      // It's somewhat common to get errors here during negotiation, often ignorable
+                      console.warn("Error adding received ICE candidate:", error);
+                  }
+              } else {
+                 console.warn("Received ICE candidate but no peerConnection/target mismatch/no candidate:", data.sender, !!peerConnection, !!data.candidate);
+              }
+          });
+
+          // Handle cases where the other user ends or rejects the call (Optional: Needs server implementation)
+            // socket.on('call_ended_by_peer', function(data) {
+            //     if (data.sender === currentTarget) {
+            //         console.log("Call ended by peer:", data.sender);
+            //         alert(`Звонок с ${data.sender} завершен.`);
+            //         cleanUpCall();
+            //     }
+            // });
+             // socket.on('call_rejected_by_peer', function(data) {
+             //     if (data.sender === currentTarget) {
+             //         console.log("Call rejected by peer:", data.sender);
+             //         alert(`${data.sender} отклонил(а) ваш звонок.`);
+             //         cleanUpCall();
+             //     }
+             // });
+             // socket.on('peer_is_busy', function(data) {
+             //     if (data.sender === currentTarget) {
+             //         console.log("Peer is busy:", data.sender);
+             //         alert(`${data.sender} сейчас занят(а).`);
+             //         cleanUpCall();
+             //     }
+             // });
+
+
+           socket.on('connect_error', (err) => {
+             console.error("Socket connection error:", err);
+             alert("Не удается подключиться к серверу чата. Пожалуйста, проверьте ваше соединение и обновите страницу.");
+           });
+
+           socket.on('disconnect', (reason) => {
+               console.warn("Socket disconnected:", reason);
+               // Optionally try to reconnect or inform the user
+                if (reason === 'io server disconnect') {
+                     // The server deliberately disconnected the client
+                     alert("Вы были отключены от сервера.");
+                } else {
+                     // Might be a network issue, Socket.IO client usually tries to reconnect automatically
+                     // alert("Соединение с сервером потеряно. Попытка переподключения...");
+                }
+                // Clean up call state if disconnected during a call
+                if (currentTarget) {
+                    console.warn("Cleaning up call due to disconnection.");
+                    cleanUpCall();
+                }
+           });
+
+           socket.on('reconnect', (attemptNumber) => {
+                console.log(`Socket reconnected after ${attemptNumber} attempts.`);
+                // Re-register user as active upon reconnecting
+                if (username && avatar) {
+                    socket.emit('user_active', { username: username, avatar: avatar });
+                    socket.emit('get_users');
+                    socket.emit('get_messages'); // Re-fetch messages on reconnect
+                }
+           });
+
+      } // End of setupGlobalListeners
+
+
+      // --- Event Listeners for UI elements ---
       document.getElementById('message').addEventListener('keypress', function(e) {
-          if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for newline
+            e.preventDefault(); // Prevent default newline in input
+            sendMessage();
+        }
       });
 
       document.getElementById('profile-btn').addEventListener('click', function() {
-          document.getElementById('profile-modal').style.display = 'block';
-          document.getElementById('new-username').value = username;
+         document.getElementById('profile-modal').style.display = 'block';
+         document.getElementById('new-username').value = username; // Pre-fill current username
+         // Pre-fill avatar preview if possible (optional)
+          const currentAvatarPreview = document.getElementById('new-avatar-preview');
+          if (avatar) {
+             currentAvatarPreview.src = `/static/uploads/${avatar}`;
+             currentAvatarPreview.style.display = 'block';
+          } else {
+             currentAvatarPreview.style.display = 'none';
+             currentAvatarPreview.src = '#';
+          }
       });
 
-      document.getElementById('emoji-btn').addEventListener('click', function() {
-          const picker = document.getElementById('emoji-picker');
-          picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
+      document.getElementById('emoji-btn').addEventListener('click', function(event) {
+        event.stopPropagation(); // Prevent click from closing picker immediately
+        const picker = document.getElementById('emoji-picker');
+        picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
       });
 
-      function addEmoji(emoji) {
-          document.getElementById('message').value += emoji;
-          document.getElementById('emoji-picker').style.display = 'none';
-      }
+       // Close emoji picker if clicking outside
+       document.addEventListener('click', function(event) {
+         const picker = document.getElementById('emoji-picker');
+         const emojiBtn = document.getElementById('emoji-btn');
+         if (picker.style.display === 'block' && !picker.contains(event.target) && event.target !== emojiBtn) {
+           picker.style.display = 'none';
+         }
+       });
 
-      // WebRTC логика
-      const configuration = {
-          iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:stun1.l.google.com:19302' },
-              { urls: 'stun:stun2.l.google.com:19302' }
-          ]
-      };
 
-      async function callUser(target) {
-          if (!username) return;
-          currentTarget = target;
+       // Send activity ping periodically
+       setInterval(() => {
+         if (socket.connected && username) {
+           // console.log("Sending periodic user_active ping");
+           socket.emit('user_active', { username: username, avatar: avatar });
+           // No need to request users/messages here, server broadcasts updates
+         }
+       }, 30000); // Ping every 30 seconds
 
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          peerConnection = new RTCPeerConnection(configuration);
 
-          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-          peerConnection.onicecandidate = event => {
-              if (event.candidate) {
-                  socket.emit('ice_candidate', { target: currentTarget, candidate: event.candidate, caller: username });
-              }
-          };
-
-          peerConnection.ontrack = event => {
-              const audio = new Audio();
-              audio.srcObject = event.streams[0];
-              audio.autoplay = true;
-              audio.id = `audio-${currentTarget}`;
-              document.body.appendChild(audio);
-              document.getElementById('call-participants').textContent = `Участники: ${currentTarget}`;
-              document.getElementById('call-window').style.display = 'block';
-          };
-
-          const offer = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offer);
-          socket.emit('call_user', { caller: username, target: currentTarget });
-          socket.emit('offer', { offer: offer, target: currentTarget, caller: username });
-      }
-
-      socket.on('incoming_call', async function(data) {
-          currentTarget = data.caller;
-          document.getElementById('call-text').textContent = `Входящий звонок от Huiber (${currentTarget})`;
-          document.getElementById('call-modal').style.display = 'block';
-          ringtone.play();
-      });
-
-      async function acceptCall() {
-          document.getElementById('call-modal').style.display = 'none';
-          ringtone.pause();
-          ringtone.currentTime = 0;
-
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          peerConnection = new RTCPeerConnection(configuration);
-
-          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-          peerConnection.onicecandidate = event => {
-              if (event.candidate) {
-                  socket.emit('ice_candidate', { target: currentTarget, candidate: event.candidate, caller: username });
-              }
-          };
-
-          peerConnection.ontrack = event => {
-              const audio = new Audio();
-              audio.srcObject = event.streams[0];
-              audio.autoplay = true;
-              audio.id = `audio-${currentTarget}`;
-              document.body.appendChild(audio);
-              document.getElementById('call-participants').textContent = `Участники: ${currentTarget}`;
-              document.getElementById('call-window').style.display = 'block';
-          };
-
-          socket.on('offer', async function(data) {
-              if (data.caller === currentTarget) {
-                  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                  const answer = await peerConnection.createAnswer();
-                  await peerConnection.setLocalDescription(answer);
-                  socket.emit('answer', { answer: answer, target: currentTarget, caller: username });
-              }
-          });
-
-          socket.on('answer', async function(data) {
-              if (data.target === username && peerConnection) {
-                  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-              }
-          });
-
-          socket.on('ice_candidate', async function(data) {
-              if (data.caller === currentTarget && peerConnection) {
-                  try {
-                      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                  } catch (e) {
-                      console.error('Ошибка добавления ICE candidate:', e);
-                  }
-              }
-          });
-      }
-
-      function rejectCall() {
-          document.getElementById('call-modal').style.display = 'none';
-          ringtone.pause();
-          ringtone.currentTime = 0;
-          currentTarget = null;
-      }
-
-      function endCall() {
-          if (peerConnection) {
-              peerConnection.close();
-              peerConnection = null;
-          }
-          if (localStream) {
-              localStream.getTracks().forEach(track => track.stop());
-          }
-          const audio = document.getElementById(`audio-${currentTarget}`);
-          if (audio) audio.remove();
-          document.getElementById('call-window').style.display = 'none';
-          ringtone.pause();
-          ringtone.currentTime = 0;
-          currentTarget = null;
-      }
-
-      setInterval(() => {
-          if (username) {
-              socket.emit('user_active', { username: username, avatar: avatar });
-              socket.emit('get_users');
-          }
-      }, 10000);
+       // Initial scroll to bottom of chat if messages are loaded statically (though we load dynamically now)
+       window.onload = () => {
+         const chat = document.getElementById('chat');
+         if(chat) chat.scrollTop = chat.scrollHeight;
+       };
     </script>
   </body>
 </html>
