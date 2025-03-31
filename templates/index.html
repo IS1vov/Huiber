@@ -1315,7 +1315,7 @@
           const avatarImg = msgElement.querySelector('.avatar');
           if (avatarImg) {
               const userAvatarFilename = users[msgUsername]?.avatar || null;
-              avatarImg.src = userAvatarFilename ? `/uploads/${userAvatarFilename}` : '/static/logo.png';
+              avatarImg.src = userAvatarFilename ? `/uploads/${avatarFilename}` : '/static/logo.png';
           }
       }
 

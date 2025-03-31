@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 import os
 import json
 import eventlet
+import time  # Добавлен импорт модуля time
 from pydub import AudioSegment
 
 eventlet.monkey_patch()
@@ -60,15 +61,20 @@ def upload_file():
     if file.mimetype.startswith("audio/") or file.filename.endswith(".webm"):
         try:
             audio = AudioSegment.from_file(temp_path)
-            filename = f"voice_{int(eventlet.time.time() * 1000)}.mp3"
+            filename = (
+                f"voice_{int(time.time() * 1000)}.mp3"  # Исправлено на time.time()
+            )
             output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             audio.export(output_path, format="mp3")
             os.remove(temp_path)
         except Exception as e:
             os.remove(temp_path)
+            print(
+                f"Error converting audio: {e}"
+            )  # Добавлено логирование ошибки на сервере
             return f"Error converting audio: {str(e)}", 500
     elif file.mimetype.startswith("video/"):
-        filename = f"video_{int(eventlet.time.time() * 1000)}.mp4"
+        filename = f"video_{int(time.time() * 1000)}.mp4"
         output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         os.rename(temp_path, output_path)
     else:
@@ -82,7 +88,7 @@ def upload_file():
 def handle_user_active(data):
     users[data["username"]] = {
         "avatar": data["avatar"],
-        "last_seen": eventlet.time.time() * 1000,
+        "last_seen": time.time() * 1000,  # Обновлено на time.time()
     }
     emit("users_list", users, broadcast=True)
 
