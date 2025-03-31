@@ -2,13 +2,11 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <!-- Добавляем метатег viewport для корректного масштабирования на мобильных -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Huiber</title>
     <link rel="icon" type="image/png" href="/static/logo.png" />
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <style>
-      /* --- Базовые стили (без изменений) --- */
       body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           margin: 0;
@@ -225,14 +223,19 @@
           cursor: pointer;
           border: 1px solid rgba(0,0,0,0.1);
       }
-      .delete-btn {
+      .message audio {
+          margin-top: 8px;
+          width: 100%;
+          max-width: 250px;
+          outline: none;
+      }
+      .delete-btn, .edit-btn {
           background: none;
           border: none;
           color: rgba(255, 255, 255, 0.6);
           font-weight: normal;
           position: absolute;
           top: 5px;
-          right: 8px;
           cursor: pointer;
           display: none;
           font-size: 16px;
@@ -241,12 +244,18 @@
           opacity: 0.7;
           transition: opacity 0.2s ease;
       }
-      .my-message:hover .delete-btn {
+      .delete-btn { right: 8px; }
+      .edit-btn { right: 30px; }
+      .my-message:hover .delete-btn, .my-message:hover .edit-btn {
           display: block;
       }
       .delete-btn:hover {
           opacity: 1.0;
           color: #FFCDD2;
+      }
+      .edit-btn:hover {
+          opacity: 1.0;
+          color: #BBDEFB;
       }
 
       #input-area {
@@ -289,6 +298,9 @@
       }
       #input-area button:active {
           transform: scale(0.9);
+      }
+      #record-btn.recording {
+          color: #F44336;
       }
       #send-btn {
           font-weight: bold;
@@ -501,16 +513,14 @@
           color: #BBB;
       }
 
-      /* --- Адаптивность для мобильных устройств --- */
       @media (max-width: 768px) {
           body {
-              padding: 0 10px; /* Добавляем отступы по бокам */
+              padding: 0 10px;
           }
-
           h1 {
-              font-size: 22px; /* Уменьшаем заголовок */
+              font-size: 22px;
               margin: 15px 0;
-              flex-wrap: wrap; /* Разрешаем перенос */
+              flex-wrap: wrap;
               justify-content: space-between;
           }
           h1 button#profile-btn {
@@ -518,20 +528,17 @@
               padding: 6px 10px;
               margin-left: 10px;
           }
-
           #chat-container, #users-list {
-              max-width: 100%; /* Растягиваем на всю ширину */
+              max-width: 100%;
               margin-bottom: 10px;
-              border-radius: 12px; /* Уменьшаем радиус */
+              border-radius: 12px;
           }
-
           #chat {
-              height: 60vh; /* Уменьшаем высоту чата пропорционально экрану */
+              height: 60vh;
               padding: 15px;
           }
-
           .message {
-              max-width: 85%; /* Увеличиваем ширину сообщений */
+              max-width: 85%;
               padding: 8px 12px;
           }
           .avatar {
@@ -546,12 +553,11 @@
               font-size: 14px;
           }
           .message img.content-img {
-              max-height: 200px; /* Уменьшаем максимальную высоту изображений */
+              max-height: 200px;
           }
-
           #input-area {
               padding: 10px 15px;
-              flex-wrap: wrap; /* Разрешаем перенос кнопок */
+              flex-wrap: wrap;
           }
           #message {
               padding: 10px 15px;
@@ -571,22 +577,20 @@
               max-width: 60px;
               max-height: 60px;
           }
-
           #emoji-picker {
               bottom: 60px;
               right: 15px;
               padding: 10px;
-              max-width: 90%; /* Ограничиваем ширину */
+              max-width: 90%;
           }
           .emoji {
               font-size: 22px;
               margin: 3px 5px;
           }
-
           #username-form, #profile-modal, #call-modal, #call-window {
               padding: 20px;
               width: 90%;
-              max-width: 100%; /* Растягиваем модальные окна */
+              max-width: 100%;
           }
           #username-form h3, #profile-modal h3, #call-modal h3, #call-window h3 {
               font-size: 18px;
@@ -609,7 +613,6 @@
               font-size: 14px;
               margin: 5px 3px;
           }
-
           #users-list {
               padding: 15px 20px;
           }
@@ -637,7 +640,6 @@
               font-size: 16px;
               margin-left: 10px;
           }
-
           #imageModal .close-modal-btn {
               font-size: 35px;
               top: 10px;
@@ -645,7 +647,6 @@
           }
       }
 
-      /* Для очень маленьких экранов (менее 480px) */
       @media (max-width: 480px) {
           h1 {
               font-size: 20px;
@@ -656,11 +657,9 @@
               margin-left: 0;
               margin-top: 10px;
           }
-
           #chat {
               height: 50vh;
           }
-
           .message {
               padding: 6px 10px;
           }
@@ -675,7 +674,6 @@
           .message-text {
               font-size: 13px;
           }
-
           #input-area {
               padding: 8px 10px;
           }
@@ -687,7 +685,6 @@
               font-size: 18px;
               margin-left: 3px;
           }
-
           #emoji-picker {
               bottom: 50px;
               right: 10px;
@@ -699,7 +696,6 @@
       }
     </style>
   </head>
-
   <body>
     <h1>Huiber <button id="profile-btn">👤 Профиль</button></h1>
 
@@ -785,7 +781,7 @@
           id="file-input"
           accept="image/*"
           style="display: none;"
-          onchange="previewImage(event, 'message-preview-container')"
+          onchange="previewImage(event, 'message-preview')"
         />
         <button
           id="file-btn"
@@ -794,6 +790,7 @@
         >
           📷
         </button>
+        <button id="record-btn" title="Голосовое сообщение">🎤</button>
         <button id="send-btn" onclick="sendMessage()" title="Отправить">
           ➤
         </button>
@@ -817,7 +814,6 @@
         <span class="emoji" onclick="addEmoji('🙏')">🙏</span>
         <span class="emoji" onclick="addEmoji('👀')">👀</span>
         <span class="emoji" onclick="addEmoji('✨')">✨</span>
-        <span class="emoji" onclick="addEmoji('ѝ')">ѝ</span>
       </div>
     </div>
 
@@ -835,11 +831,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
     <script>
-      // Оставляем JavaScript без изменений, так как он не влияет на цветовую схему
       const socket = io();
       let username = localStorage.getItem('username');
       let avatar = localStorage.getItem('avatar');
       let users = {};
+      let mediaRecorder;
+      let audioChunks = [];
 
       let peerConnection;
       let localStream;
@@ -871,9 +868,7 @@
           hideElement('chat-container');
           hideElement('users-list');
           showElement('username-form');
-          document.getElementById('avatar').onchange = (event) => {
-              previewImage(event, 'avatar-preview');
-          };
+          document.getElementById('avatar').onchange = (event) => previewImage(event, 'avatar-preview');
       }
 
       function showChat() {
@@ -905,6 +900,7 @@
           requestNotificationPermission();
           setupGlobalListeners();
           startActivityPing();
+          setupVoiceRecording();
       }
 
       let activityPingInterval;
@@ -1001,7 +997,6 @@
               }
 
               if (Object.keys(updateData).length > 0) {
-                  console.log("Updating profile on server:", { username: username, avatar: avatar });
                   socket.emit('user_active', { username: username, avatar: avatar });
                   alert('Профиль обновлен!');
                   hideElement('profile-modal');
@@ -1011,7 +1006,6 @@
                   document.getElementById('new-avatar-preview').src = '#';
 
                   if (needsReload) {
-                      console.log("Username changed, reloading page...");
                       location.reload();
                   } else {
                       updateMessageStyles();
@@ -1057,7 +1051,6 @@
           if (!chat) return;
 
           if (document.querySelector(`.message[data-id="${msg.id}"]`)) {
-              console.warn(`Message with ID ${msg.id} already exists. Skipping render.`);
               return;
           }
 
@@ -1069,30 +1062,38 @@
           div.dataset.username = msg.username;
 
           const userAvatarFilename = users[msg.username]?.avatar || null;
-          const avatarSrc = userAvatarFilename ? `/static/uploads/${userAvatarFilename}` : '/static/logo.png';
+          const avatarSrc = userAvatarFilename ? `/uploads/${userAvatarFilename}` : '/static/logo.png';
           const defaultAvatarOnError = '/static/logo.png';
 
-          const messageText = replaceDenis(msg.text || "");
-
-          let imageHTML = '';
+          let contentHTML = '';
+          if (msg.text) {
+              const messageText = replaceDenis(msg.text);
+              contentHTML += `<span class="message-text">${messageText}</span>`;
+          }
           if (msg.image) {
-              const imageSrc = `/static/uploads/${msg.image}`;
-              imageHTML = `<img src="${imageSrc}" class="content-img" onclick="openImageModal('${imageSrc}')" alt="Изображение от ${msg.username || 'пользователя'}">`;
+              const imageSrc = `/uploads/${msg.image}`;
+              contentHTML += `<img src="${imageSrc}" class="content-img" onclick="openImageModal('${imageSrc}')" alt="Изображение от ${msg.username || 'пользователя'}">`;
+          }
+          if (msg.voice) {
+              const voiceSrc = `/uploads/${msg.voice}`;
+              contentHTML += `<audio controls src="${voiceSrc}"></audio>`;
           }
 
-          let deleteButtonHTML = '';
+          let buttonsHTML = '';
           if (msg.username === username) {
-              deleteButtonHTML = `<button class="delete-btn" onclick="deleteMessage('${msg.id}')" title="Удалить">🗑️</button>`;
+              buttonsHTML = `
+                  <button class="delete-btn" onclick="deleteMessage('${msg.id}')" title="Удалить">🗑️</button>
+                  ${msg.text ? `<button class="edit-btn" onclick="editMessage('${msg.id}', '${msg.text}')" title="Редактировать">✏️</button>` : ''}
+              `;
           }
 
           div.innerHTML = `
               <img src="${avatarSrc}" class="avatar" alt="${msg.username}'s avatar" onerror="this.onerror=null;this.src='${defaultAvatarOnError}';">
               <div class="message-content-wrapper">
                   <span class="username">${msg.username || 'Аноним'}:</span>
-                  <span class="message-text">${messageText}</span>
-                  ${imageHTML}
+                  ${contentHTML}
               </div>
-              ${deleteButtonHTML}
+              ${buttonsHTML}
           `;
 
           if (prepend) {
@@ -1116,7 +1117,6 @@
 
           if ((text || file) && username) {
               const sendMessageData = (imageData = null) => {
-                  console.log(`Sending message: Text='${text}', Image='${imageData}'`);
                   socket.emit('send_message', {
                       message: text,
                       username: username,
@@ -1155,9 +1155,63 @@
 
       function deleteMessage(id) {
           if (confirm('Вы уверены, что хотите удалить это сообщение?')) {
-              console.log(`Requesting deletion of message ID: ${id} by user: ${username}`);
               socket.emit('delete_message', { id: id, username: username });
           }
+      }
+
+      function editMessage(id, currentText) {
+          const newText = prompt('Редактировать сообщение:', currentText);
+          if (newText !== null && newText.trim() && newText !== currentText) {
+              socket.emit('edit_message', { id: id, text: newText.trim(), username: username });
+          }
+      }
+
+      function setupVoiceRecording() {
+          const recordBtn = document.getElementById('record-btn');
+          recordBtn.addEventListener('click', () => {
+              if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                  navigator.mediaDevices.getUserMedia({ audio: true })
+                      .then(stream => {
+                          mediaRecorder = new MediaRecorder(stream);
+                          audioChunks = [];
+
+                          mediaRecorder.ondataavailable = event => {
+                              audioChunks.push(event.data);
+                          };
+
+                          mediaRecorder.onstop = () => {
+                              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                              const formData = new FormData();
+                              formData.append('file', audioBlob, `voice_${Date.now()}.webm`);
+
+                              fetch('/upload', { method: 'POST', body: formData })
+                                  .then(response => response.text())
+                                  .then(filename => {
+                                      socket.emit('send_message', {
+                                          username: username,
+                                          voice: filename
+                                      });
+                                  })
+                                  .catch(error => {
+                                      console.error('Error uploading voice:', error);
+                                      alert('Ошибка загрузки голосового сообщения.');
+                                  });
+
+                              stream.getTracks().forEach(track => track.stop());
+                              recordBtn.classList.remove('recording');
+                          };
+
+                          mediaRecorder.start();
+                          recordBtn.classList.add('recording');
+                      })
+                      .catch(error => {
+                          console.error('Error accessing microphone:', error);
+                          alert('Не удалось получить доступ к микрофону.');
+                      });
+              } else if (mediaRecorder.state === 'recording') {
+                  mediaRecorder.stop();
+              }
+          });
       }
 
       function updateMessageStyles() {
@@ -1175,18 +1229,18 @@
           msgElement.classList.toggle('other-message', !isMy);
 
           const deleteBtn = msgElement.querySelector('.delete-btn');
-          if(deleteBtn){
-              deleteBtn.style.display = isMy ? '' : 'none';
-          }
+          const editBtn = msgElement.querySelector('.edit-btn');
+          if (deleteBtn) deleteBtn.style.display = isMy ? '' : 'none';
+          if (editBtn) editBtn.style.display = isMy ? '' : 'none';
+
           const avatarImg = msgElement.querySelector('.avatar');
           if (avatarImg) {
               const userAvatarFilename = users[msgUsername]?.avatar || null;
-              avatarImg.src = userAvatarFilename ? `/static/uploads/${userAvatarFilename}` : '/static/logo.png';
+              avatarImg.src = userAvatarFilename ? `/uploads/${userAvatarFilename}` : '/static/logo.png';
           }
       }
 
       function updateUsersList() {
-          console.log("Updating users list display with data:", users);
           const usersContent = document.getElementById('users-content');
           if (!usersContent) return;
           usersContent.innerHTML = '';
@@ -1204,7 +1258,7 @@
               div.id = `user-${user}`;
 
               const avatarFilename = info.avatar || null;
-              const avatarSrc = avatarFilename ? `/static/uploads/${avatarFilename}` : '/static/logo.png';
+              const avatarSrc = avatarFilename ? `/uploads/${avatarFilename}` : '/static/logo.png';
               const defaultAvatarOnError = '/static/logo.png';
 
               let statusText = 'Офлайн';
@@ -1310,11 +1364,7 @@
                           icon: '/static/logo.png',
                           tag: 'huiber-permission'
                       });
-                  } else {
-                      console.log('Разрешение на уведомления отклонено');
                   }
-              }).catch(err => {
-                  console.error('Ошибка запроса разрешения:', err);
               });
           }
       }
@@ -1350,57 +1400,32 @@
       function createPeerConnection() {
           try {
               if (peerConnection) {
-                  console.warn("Closing existing peer connection before creating a new one.");
                   cleanUpCall();
               }
-
-              console.log("[Peer] Creating PeerConnection with config:", configuration);
               peerConnection = new RTCPeerConnection(configuration);
 
               peerConnection.onicecandidate = event => {
                   if (event.candidate && currentTarget && username) {
-                      console.log(`[Peer] Sending ICE candidate for ${currentTarget}:`, event.candidate.type, event.candidate.sdpMLineIndex);
                       socket.emit('ice_candidate', {
                           target: currentTarget,
                           candidate: event.candidate,
                           sender: username
                       });
-                  } else if (!event.candidate) {
-                      console.log("[Peer] All ICE candidates gathered.");
-                  } else {
-                      console.warn("[Peer] Not sending ICE candidate (no target/username or empty candidate).");
                   }
               };
 
               peerConnection.ontrack = event => {
-                  console.log("[Peer] Track received:", event.track.kind, "Stream:", event.streams[0]?.id);
                   const remoteAudio = document.getElementById('remote-audio');
                   if (remoteAudio && event.streams && event.streams[0]) {
-                      console.log("[Peer] Attaching remote stream to audio element.");
-                      if (remoteAudio.srcObject !== event.streams[0]) {
-                          remoteAudio.srcObject = event.streams[0];
-                      } else {
-                          console.log("[Peer] Remote stream already attached.");
-                      }
-
-                      console.log("[Peer] Attempting to play remote audio...");
-                      remoteAudio.play().then(() => {
-                          console.log("[Peer] Remote audio playback started successfully.");
-                          document.getElementById('call-participants').textContent = `В разговоре с: ${currentTarget || '???'}`;
-                          document.getElementById('connecting-indicator').style.display = 'none';
-                      }).catch(e => {
-                          console.error("[Peer] ERROR playing remote audio:", e);
-                          document.getElementById('call-participants').textContent = `Разговор с ${currentTarget || '???'} (проблема со звуком)`;
-                          document.getElementById('connecting-indicator').style.display = 'none';
-                      });
-                  } else {
-                      console.error("[Peer] Failed to attach track: No remoteAudio element or stream available.");
+                      remoteAudio.srcObject = event.streams[0];
+                      remoteAudio.play().catch(e => console.error("Error playing remote audio:", e));
+                      document.getElementById('call-participants').textContent = `В разговоре с: ${currentTarget || '???'}`;
+                      document.getElementById('connecting-indicator').style.display = 'none';
                   }
               };
 
               peerConnection.oniceconnectionstatechange = () => {
                   if (!peerConnection) return;
-                  console.log(`[Peer] >> ICE Connection State Changed: ${peerConnection.iceConnectionState}`);
                   const indicator = document.getElementById('connecting-indicator');
                   const participantsText = document.getElementById('call-participants');
                   const targetName = currentTarget || "собеседник";
@@ -1412,126 +1437,73 @@
                           if (participantsText) participantsText.textContent = `Соединение с ${targetName}...`;
                           break;
                       case "connected":
-                          if (indicator) indicator.style.display = 'none';
-                          console.log("[Peer] ICE connected. Waiting for media stream via 'ontrack'.");
-                          break;
                       case "completed":
                           if (indicator) indicator.style.display = 'none';
-                          console.log("[Peer] ICE negotiation completed.");
                           break;
                       case "disconnected":
-                          if (indicator) indicator.style.display = 'none';
-                          if (participantsText) participantsText.textContent = `Соединение с ${targetName} прервано...`;
-                          console.warn("[Peer] ICE disconnected.");
-                          break;
                       case "failed":
                           if (indicator) indicator.style.display = 'none';
                           if (participantsText) participantsText.textContent = `Не удалось соединиться с ${targetName}`;
-                          console.error("[Peer] ICE connection failed.");
-                          alert(`Не удалось установить соединение с ${targetName}. Проверьте консоль.`);
                           endCall();
                           break;
                       case "closed":
                           if (indicator) indicator.style.display = 'none';
-                          if (participantsText) participantsText.textContent = `Звонок с ${targetName} завершен`;
-                          console.log("[Peer] ICE connection closed.");
                           cleanUpCall();
-                          break;
-                      default:
-                          if (indicator) indicator.style.display = 'none';
                           break;
                   }
               };
 
-              peerConnection.onsignalingstatechange = () => {
-                  if (!peerConnection) return;
-                  console.log(`[Peer] >> Signaling State Changed: ${peerConnection.signalingState}`);
-              };
-
               return peerConnection;
-
           } catch (error) {
-              console.error("[Peer] FATAL Error creating PeerConnection:", error);
-              alert("Критическая ошибка при инициализации звонка. Обновите страницу или проверьте браузер.");
+              console.error("Error creating PeerConnection:", error);
+              alert("Ошибка при инициализации звонка.");
               return null;
           }
       }
 
       async function startLocalMedia() {
-          console.log("[Media] Requesting user media (audio only)...");
           try {
               localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-              console.log("[Media] Local media stream obtained successfully:", localStream.id);
               return localStream;
           } catch (error) {
-              console.error("[Media] ERROR getting user media:", error.name, error.message);
-              if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                  alert("Доступ к микрофону запрещен. Пожалуйста, разрешите доступ в настройках браузера.");
-              } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                  alert("Микрофон не найден. Убедитесь, что он подключен и работает.");
-              } else {
-                  alert(`Не удалось получить доступ к микрофону: ${error.message}`);
-              }
+              console.error('Error getting user media:', error);
+              alert('Не удалось получить доступ к микрофону.');
               return null;
           }
       }
 
       async function callUser(targetUsername) {
-          console.log(`[CallFlow] Attempting callUser(${targetUsername}) by ${username}`);
           if (!username) return alert("Сначала войдите в систему.");
-          if (currentTarget) return alert("Вы уже участвуете в звонке или звоните.");
+          if (currentTarget) return alert("Вы уже в звонке.");
 
           currentTarget = targetUsername;
-
           localStream = await startLocalMedia();
           if (!localStream) { currentTarget = null; return; }
 
           peerConnection = createPeerConnection();
           if (!peerConnection) { cleanUpCall(); return; }
 
-          console.log("[CallFlow:Caller] Adding local tracks...");
-          localStream.getTracks().forEach(track => {
-              try {
-                  peerConnection.addTrack(track, localStream);
-                  console.log(`[CallFlow:Caller] Local track added: ${track.kind} (${track.id})`);
-              } catch (e) {
-                  console.error("[CallFlow:Caller] ERROR adding track:", e);
-              }
-          });
-
+          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
           document.getElementById('call-participants').textContent = `Звонок пользователю ${currentTarget}...`;
           document.getElementById('connecting-indicator').style.display = 'block';
           showElement('call-window');
 
           try {
-              console.log(`[CallFlow:Caller] Creating offer for ${currentTarget}`);
               const offer = await peerConnection.createOffer();
-              console.log(`[CallFlow:Caller] Offer created. Setting local description.`);
-
-              try {
-                  await peerConnection.setLocalDescription(offer);
-                  console.log(`[CallFlow:Caller] Local description (offer) set. Emitting offer to server.`);
-                  socket.emit('offer', {
-                      offer: peerConnection.localDescription,
-                      target: currentTarget,
-                      caller: username
-                  });
-              } catch (e) {
-                  console.error(`[CallFlow:Caller] ERROR setting local description (offer):`, e);
-                  alert(`Ошибка установки локального описания: ${e.message}`);
-                  endCall();
-              }
+              await peerConnection.setLocalDescription(offer);
+              socket.emit('offer', {
+                  offer: peerConnection.localDescription,
+                  target: currentTarget,
+                  caller: username
+              });
           } catch (error) {
-              console.error("[CallFlow:Caller] ERROR creating offer:", error);
-              alert(`Не удалось создать предложение для звонка: ${error.message}`);
+              console.error("Error creating offer:", error);
               endCall();
           }
       }
 
       async function acceptCall() {
-          console.log(`[CallFlow:Callee] Attempting acceptCall() from ${currentTarget} by ${username}`);
           if (!currentTarget || !receivedOffer) {
-              console.error("[CallFlow:Callee] Cannot accept call: Missing target or received offer.");
               rejectCall();
               return;
           }
@@ -1550,165 +1522,78 @@
           document.getElementById('connecting-indicator').style.display = 'block';
           showElement('call-window');
 
-          console.log("[CallFlow:Callee] Adding local tracks...");
-          localStream.getTracks().forEach(track => {
-              try {
-                  peerConnection.addTrack(track, localStream);
-                  console.log(`[CallFlow:Callee] Local track added: ${track.kind} (${track.id})`);
-              } catch (e) {
-                  console.error("[CallFlow:Callee] ERROR adding track:", e);
-              }
-          });
+          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
           try {
-              console.log(`[CallFlow:Callee] Setting remote description (offer) from ${currentTarget}`);
               await peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer));
-              console.log(`[CallFlow:Callee] Remote description (offer) set. Creating answer.`);
-              receivedOffer = null;
-
               const answer = await peerConnection.createAnswer();
-              console.log(`[CallFlow:Callee] Answer created. Setting local description (answer).`);
-
-              try {
-                  await peerConnection.setLocalDescription(answer);
-                  console.log(`[CallFlow:Callee] Local description (answer) set. Emitting answer to server for ${currentTarget}.`);
-                  socket.emit('answer', {
-                      answer: peerConnection.localDescription,
-                      target: currentTarget,
-                      caller: username
-                  });
-              } catch(e) {
-                  console.error(`[CallFlow:Callee] ERROR setting local description (answer):`, e);
-                  alert(`Ошибка установки локального описания (ответа): ${e.message}`);
-                  endCall();
-              }
-
+              await peerConnection.setLocalDescription(answer);
+              socket.emit('answer', {
+                  answer: peerConnection.localDescription,
+                  target: currentTarget,
+                  caller: username
+              });
+              receivedOffer = null;
           } catch (error) {
-              console.error("[CallFlow:Callee] ERROR processing offer or creating answer:", error);
-              alert(`Не удалось обработать звонок: ${error.message}`);
+              console.error("Error accepting call:", error);
               endCall();
           }
       }
 
       function rejectCall() {
-          console.log(`[CallFlow] Rejecting call from ${currentTarget} by ${username}`);
           cleanUpCall();
           hideElement('call-modal');
       }
 
       function endCall() {
-          console.log(`[CallFlow] Ending call with ${currentTarget} initiated by ${username}`);
           cleanUpCall();
       }
 
       function cleanUpCall() {
-          console.log("[Cleanup] Starting call cleanup...");
           if (peerConnection) {
-              peerConnection.onicecandidate = null;
-              peerConnection.ontrack = null;
-              peerConnection.oniceconnectionstatechange = null;
-              peerConnection.onsignalingstatechange = null;
-              if (peerConnection.signalingState !== 'closed') {
-                  peerConnection.close();
-                  console.log("[Cleanup] PeerConnection closed.");
-              }
+              peerConnection.close();
               peerConnection = null;
-          } else {
-              console.log("[Cleanup] No active peer connection found.");
           }
-
           if (localStream) {
-              console.log("[Cleanup] Stopping local stream tracks...");
               localStream.getTracks().forEach(track => track.stop());
               localStream = null;
-          } else {
-              console.log("[Cleanup] No active local stream found.");
           }
-
           const remoteAudio = document.getElementById('remote-audio');
           if (remoteAudio && remoteAudio.srcObject) {
-              console.log("[Cleanup] Stopping remote stream tracks and clearing srcObject...");
               remoteAudio.srcObject = null;
-              remoteAudio.pause();
-              remoteAudio.removeAttribute('src');
-              remoteAudio.load();
-          } else {
-              console.log("[Cleanup] No active remote stream found on audio element.");
           }
-
           hideElement('call-window');
           hideElement('call-modal');
-          const indicator = document.getElementById('connecting-indicator');
-          const participantsText = document.getElementById('call-participants');
-          if(indicator) indicator.style.display = 'none';
-          if(participantsText) participantsText.textContent = 'Соединение...';
-
+          document.getElementById('connecting-indicator').style.display = 'none';
+          document.getElementById('call-participants').textContent = 'Соединение...';
           ringtone.pause();
           ringtone.currentTime = 0;
-
-          console.log(`[Cleanup] Resetting call state (currentTarget was: ${currentTarget})`);
           currentTarget = null;
           receivedOffer = null;
-          console.log("[Cleanup] Call cleanup finished.");
       }
 
       function setupGlobalListeners() {
-          console.log("[Socket] Setting up global Socket.IO listeners.");
-
-          socket.off('connect');
-          socket.off('disconnect');
-          socket.off('reconnect');
-          socket.off('connect_error');
-          socket.off('initial_messages');
-          socket.off('new_message');
-          socket.off('message_deleted');
-          socket.off('users_list');
-          socket.off('update_users');
-          socket.off('incoming_call');
-          socket.off('offer');
-          socket.off('answer');
-          socket.off('ice_candidate');
-
           socket.on('connect', () => {
-              console.log(`[Socket] Connected successfully with SID: ${socket.id}`);
               if (username && avatar) {
-                  console.log("[Socket] Re-emitting user_active and getting data on connect.");
                   socket.emit('user_active', { username: username, avatar: avatar });
                   socket.emit('get_users');
                   socket.emit('get_messages');
               }
           });
 
-          socket.on('disconnect', (reason) => {
-              console.warn(`[Socket] Disconnected: ${reason}`);
+          socket.on('disconnect', () => {
               if (currentTarget) {
-                  console.warn("[Socket] Cleaning up call state due to disconnection.");
                   cleanUpCall();
                   alert("Соединение потеряно. Звонок завершен.");
               }
           });
 
-          socket.on('reconnect', (attemptNumber) => {
-              console.log(`[Socket] Reconnected after ${attemptNumber} attempts.`);
-          });
-
-          socket.on('connect_error', (err) => {
-              console.error("[Socket] Connection error:", err.message);
-              if (currentTarget) {
-                  console.warn("[Socket] Cleaning up call state due to connection error.");
-                  cleanUpCall();
-              }
-              alert("Не удается подключиться к серверу чата. Проверьте соединение.");
-          });
-
-          socket.on('initial_messages', function(loadedMessages) {
-              console.log(`[Socket] Received initial_messages (${loadedMessages.messages?.length || 0} messages)`);
+          socket.on('initial_messages', (loadedMessages) => {
               const chat = document.getElementById('chat');
               if (!chat) return;
               chat.innerHTML = '';
 
               if (loadedMessages.users) {
-                  console.log("[Socket] Updating users cache from initial_messages");
                   users = loadedMessages.users;
               }
 
@@ -1720,119 +1605,83 @@
               updateMessageStyles();
           });
 
-          socket.on('new_message', function(msg) {
-              console.log(`[Socket] Received new_message from ${msg.username} (ID: ${msg.id})`);
+          socket.on('new_message', (msg) => {
               if (msg.username && msg.avatar && (!users[msg.username] || users[msg.username].avatar !== msg.avatar)) {
-                  console.log(`[Socket] Updating user cache for ${msg.username} from new_message`);
                   users[msg.username] = { ...(users[msg.username] || {}), avatar: msg.avatar, last_seen: new Date().toISOString() };
               }
               renderMessage(msg);
               if (msg.username !== username) {
-                  const avatarSrc = users[msg.username]?.avatar ? `/static/uploads/${users[msg.username].avatar}` : '/static/logo.png';
+                  const avatarSrc = users[msg.username]?.avatar ? `/uploads/${users[msg.username].avatar}` : '/static/logo.png';
                   showNotification(
                       `Новое сообщение от ${msg.username}`,
-                      replaceDenis(msg.text || (msg.image ? "[Изображение]" : "")),
+                      replaceDenis(msg.text || (msg.image ? "[Изображение]" : msg.voice ? "[Голосовое]" : "")),
                       avatarSrc
                   );
               }
           });
 
-          socket.on('message_deleted', function(data) {
-              console.log(`[Socket] Received message_deleted for ID: ${data.id}`);
+          socket.on('message_edited', (data) => {
+              const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
+              if (msgElement) {
+                  const textElement = msgElement.querySelector('.message-text');
+                  if (textElement) {
+                      textElement.textContent = replaceDenis(data.text);
+                  }
+              }
+          });
+
+          socket.on('message_deleted', (data) => {
               const msgElement = document.querySelector(`.message[data-id="${data.id}"]`);
               if (msgElement) {
                   msgElement.remove();
-                  console.log(`[UI] Message element ${data.id} removed.`);
-              } else {
-                  console.warn(`[UI] Could not find message element ${data.id} to delete.`);
               }
           });
 
-          socket.on('users_list', function(users_data) {
-              console.log("[Socket] Received users_list update.");
-              users = users_data || {};
-              updateUsersList();
-              updateMessageStyles();
-          });
-          socket.on('update_users', function(users_data) {
-              console.log("[Socket] Received 'update_users' (legacy?) update.");
+          socket.on('users_list', (users_data) => {
               users = users_data || {};
               updateUsersList();
               updateMessageStyles();
           });
 
-          socket.on('incoming_call', function(data) {
-              console.log(`[Socket] Received incoming_call from: ${data.caller}`);
-              if (currentTarget) {
-                  console.warn(`[Socket] Ignoring incoming call from ${data.caller} because already in call with ${currentTarget}.`);
-                  return;
-              }
+          socket.on('incoming_call', (data) => {
+              if (currentTarget) return;
               currentTarget = data.caller;
               document.getElementById('call-text').textContent = `Входящий звонок от ${currentTarget}`;
               showElement('call-modal');
               ringtone.play().catch(e => console.warn("Ringtone play failed:", e));
           });
 
-          socket.on('offer', async function(data) {
-              console.log(`[Socket:${username}] Received 'offer' event from ${data.sender}`);
+          socket.on('offer', (data) => {
               if (data.sender === currentTarget) {
-                  if (peerConnection && peerConnection.signalingState !== 'stable') {
-                      console.warn(`[Socket:${username}] Received offer while P.C. is not stable (${peerConnection.signalingState}). Ignoring.`);
-                      return;
-                  }
-                  console.log(`[Socket:${username}] Storing received offer from ${data.sender}.`);
                   receivedOffer = data.offer;
-              } else {
-                  console.warn(`[Socket:${username}] Ignoring offer from unexpected sender: ${data.sender}. Expecting: ${currentTarget}`);
               }
           });
 
-          socket.on('answer', async function(data) {
-              console.log(`[Socket:${username}] Received 'answer' event from ${data.sender}`);
+          socket.on('answer', async (data) => {
               if (peerConnection && data.sender === currentTarget) {
-                  if (peerConnection.signalingState === 'have-local-offer') {
-                      console.log(`[Socket:${username}] Setting remote description (answer) from ${currentTarget}`);
-                      try {
-                          await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                          console.log(`[Socket:${username}] Remote description (answer) set successfully.`);
-                      } catch (error) {
-                          console.error(`[Socket:${username}] ERROR setting remote description (answer):`, error);
-                          alert(`Ошибка применения ответа от ${currentTarget}: ${error.message}`);
-                          endCall();
-                      }
-                  } else {
-                      console.warn(`[Socket:${username}] Received answer in unexpected signaling state: ${peerConnection.signalingState}. Ignoring.`);
-                  }
-              } else {
-                  console.warn(`[Socket:${username}] Ignoring answer: PC?(${!!peerConnection}) Sender?(${data.sender} vs ${currentTarget})`);
+                  await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
               }
           });
 
-          socket.on('ice_candidate', async function(data) {
-              if (peerConnection && peerConnection.signalingState !== 'closed' && data.sender === currentTarget && data.candidate) {
-                  try {
-                      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                  } catch (error) {
-                      if (peerConnection && peerConnection.signalingState !== 'closed') {
-                          console.warn(`[Socket:${username}] Error adding received ICE candidate:`, error.message);
-                      }
-                  }
+          socket.on('ice_candidate', async (data) => {
+              if (peerConnection && data.sender === currentTarget && data.candidate) {
+                  await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
               }
           });
       }
 
-      document.getElementById('message').addEventListener('keypress', function(e) {
+      document.getElementById('message').addEventListener('keypress', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               sendMessage();
           }
       });
 
-      document.getElementById('profile-btn').addEventListener('click', function() {
+      document.getElementById('profile-btn').addEventListener('click', () => {
           document.getElementById('new-username').value = username || '';
           const currentAvatarPreview = document.getElementById('new-avatar-preview');
           if (avatar) {
-              currentAvatarPreview.src = `/static/uploads/${avatar}`;
+              currentAvatarPreview.src = `/uploads/${avatar}`;
               currentAvatarPreview.style.display = 'block';
           } else {
               currentAvatarPreview.style.display = 'none';
@@ -1841,13 +1690,13 @@
           showElement('profile-modal');
       });
 
-      document.getElementById('emoji-btn').addEventListener('click', function(event) {
+      document.getElementById('emoji-btn').addEventListener('click', (event) => {
           event.stopPropagation();
           const picker = document.getElementById('emoji-picker');
           picker.style.display = picker.style.display === 'block' ? 'none' : 'block';
       });
 
-      document.addEventListener('click', function(event) {
+      document.addEventListener('click', (event) => {
           const picker = document.getElementById('emoji-picker');
           const emojiBtn = document.getElementById('emoji-btn');
           if (picker && picker.style.display === 'block' && !picker.contains(event.target) && event.target !== emojiBtn) {
