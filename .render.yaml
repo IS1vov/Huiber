@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: huiber
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && apt-get update && apt-get install -y ffmpeg"
+    startCommand: "python app.py"
+    envVars:
+      - key: PORT
+        value: 5001

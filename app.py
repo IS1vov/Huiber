@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 import os
 import json
 import eventlet
+from pydub import AudioSegment
 
 # Настройка eventlet для асинхронной работы
 eventlet.monkey_patch()
@@ -56,8 +57,24 @@ def upload_file():
     file = request.files["file"]
     if file.filename == "":
         return "No selected file", 400
+
+    # Сохраняем временный файл
+    temp_path = os.path.join(app.config["UPLOAD_FOLDER"], f"temp_{file.filename}")
+    file.save(temp_path)
+
+    # Если это аудио (голосовое сообщение), конвертируем в mp3
     filename = file.filename
-    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+    if file.mimetype.startswith("audio/") or file.filename.endswith(".webm"):
+        audio = AudioSegment.from_file(temp_path)
+        filename = f"voice_{int(eventlet.time.time() * 1000)}.mp3"
+        output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        audio.export(output_path, format="mp3")
+        os.remove(temp_path)  # Удаляем временный файл
+    else:
+        # Для изображений просто переименовываем
+        output_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        os.rename(temp_path, output_path)
+
     return filename
 
 
@@ -123,5 +140,4 @@ def delete_message(data):
 
 
 if __name__ == "__main__":
-    # Запуск через eventlet
     socketio.run(app, host="0.0.0.0", port=5001, debug=True)

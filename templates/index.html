@@ -223,11 +223,24 @@
           cursor: pointer;
           border: 1px solid rgba(0,0,0,0.1);
       }
-      .message audio {
+      .message .voice-wrapper {
           margin-top: 8px;
+          display: flex;
+          align-items: center;
+      }
+      .message audio {
           width: 100%;
           max-width: 250px;
           outline: none;
+          vertical-align: middle;
+      }
+      .message .voice-duration {
+          font-size: 12px;
+          margin-left: 10px;
+          color: #455A64;
+      }
+      .my-message .voice-duration {
+          color: rgba(255, 255, 255, 0.8);
       }
       .delete-btn, .edit-btn {
           background: none;
@@ -1076,7 +1089,11 @@
           }
           if (msg.voice) {
               const voiceSrc = `/uploads/${msg.voice}`;
-              contentHTML += `<audio controls src="${voiceSrc}"></audio>`;
+              contentHTML += `
+                  <div class="voice-wrapper">
+                      <audio controls src="${voiceSrc}" preload="metadata" onloadedmetadata="updateVoiceDuration(this)"></audio>
+                      <span class="voice-duration">0:00</span>
+                  </div>`;
           }
 
           let buttonsHTML = '';
@@ -1106,6 +1123,18 @@
 
           if (!prepend && isScrolledToBottom) {
               chat.scrollTop = chat.scrollHeight;
+          }
+      }
+
+      function updateVoiceDuration(audioElement) {
+          const duration = audioElement.duration;
+          if (!isNaN(duration)) {
+              const minutes = Math.floor(duration / 60);
+              const seconds = Math.floor(duration % 60).toString().padStart(2, '0');
+              const durationSpan = audioElement.parentElement.querySelector('.voice-duration');
+              if (durationSpan) {
+                  durationSpan.textContent = `${minutes}:${seconds}`;
+              }
           }
       }
 
@@ -1185,7 +1214,10 @@
                               formData.append('file', audioBlob, `voice_${Date.now()}.webm`);
 
                               fetch('/upload', { method: 'POST', body: formData })
-                                  .then(response => response.text())
+                                  .then(response => {
+                                      if (!response.ok) throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+                                      return response.text();
+                                  })
                                   .then(filename => {
                                       socket.emit('send_message', {
                                           username: username,
